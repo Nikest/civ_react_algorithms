@@ -20,7 +20,7 @@ root.render(
   </React.StrictMode>
 );
 
-const systemSeed = 694012347845 // Math.floor(Math.random() * 100000);
+const systemSeed = Math.floor(Math.random() * 100000);
 // system seeds
 // 43144
 // 42124

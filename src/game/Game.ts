@@ -7,7 +7,7 @@ export class Game {
     civilization: Civilization;
     timer: Timer;
     constructor(systemSeed: number, civilizationSeed: number) {
-        this.timer = new Timer(10000, 0, 0);
+        this.timer = new Timer(10000, 0, 1);
         this.system = new System(systemSeed);
         this.civilization = new Civilization(civilizationSeed);
         this.civilization.start();

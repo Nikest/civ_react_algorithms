@@ -1,8 +1,9 @@
 import { Procedural } from '../Procedural';
 import { generatePlanetName } from '../wordGenerator';
-import { generateId } from '../utils';
+import { generateId, lerp } from '../utils';
 import { PlanetBuilder } from './PlanetBuilder';
-import {int} from "three/examples/jsm/nodes/shadernode/ShaderNode";
+// @ts-ignore
+import KtRGB from 'kelvin-to-rgb';
 
 export class System {
     seed = 0;
@@ -13,7 +14,7 @@ export class System {
     constructor(seed: number) {
         const procedural = new Procedural(seed);
         this.seed = seed;
-
+        console.log(KtRGB);
         this.star = new Star(this.seed + procedural.randomInt(0, 1000));
 
         for (let i = 0; i < procedural.randomInt(1, 3); i++) {
@@ -65,17 +66,31 @@ export class System {
     }
 }
 
+const temperatures = {
+    K: [3500, 5000],
+    G: [5000, 6000],
+    F: [6000, 7500],
+};
+
 class Star {
     seed = 0;
     name = '';
     type = '';
+    temperature = 0;
+    uiColor = '';
 
 
     constructor(seed: number) {
         const procedural = new Procedural(seed);
         this.seed = seed;
         this.name = generatePlanetName(this.seed);
-        this.type = procedural.randomFromArray(['K','K','K', 'G','G', 'F']) + procedural.randomInt(0, 9) + 'V';
+        const type = procedural.randomFromArray(['K','K','K', 'G','G', 'F']);
+        const subType = procedural.randomInt(0, 9);
+        this.type = type + subType + 'V';
+
+        // @ts-ignore
+        this.temperature = lerp(temperatures[type][0], temperatures[type][0], (10 - subType) / 10);
+        this.uiColor = `rgb(${KtRGB(this.temperature).join(',')})`;
     }
 }
 

@@ -3,6 +3,7 @@ import './App.css';
 
 import {
     SystemPanel,
+    System3DView,
     CivilizationPanel,
     PersonsPanel,
     ColonialFleet,
@@ -15,6 +16,7 @@ function App() {
   return (
     <div className="App">
         <TimerPanel />
+        <System3DView />
         <SystemPanel />
         <PlanetViewPanel />
         <CivilizationPanel />

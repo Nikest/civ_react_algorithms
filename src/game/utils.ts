@@ -30,3 +30,7 @@ export function formatNumberWithEnd(number: number) {
 export function formatNumber(number: number) {
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
+
+export function lerp(a: number, b: number, t: number): number {
+    return a + (b - a) * t;
+}
