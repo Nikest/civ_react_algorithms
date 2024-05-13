@@ -2,31 +2,37 @@ import { Procedural } from '../Procedural';
 import { generatePlanetName } from '../wordGenerator';
 import { generateId, lerp } from '../utils';
 import { PlanetBuilder } from './PlanetBuilder';
+
+import { Star, TStarTemperatureZoneIndex } from './star/Star';
+import { AbstractPlanet } from './planets/AbstractPlanet';
+import { PlanetFactory } from './planets/PlanetFactory';
+
 // @ts-ignore
 import KtRGB from 'kelvin-to-rgb';
 
 export class System {
     seed = 0;
     star: Star;
-    planets: Planet[] = [];
+    planets: AbstractPlanet[] = [];
 
     selectedPlanetId = '';
     constructor(seed: number) {
         const procedural = new Procedural(seed);
         this.seed = seed;
-        console.log(KtRGB);
-        this.star = new Star(this.seed + procedural.randomInt(0, 1000));
 
-        for (let i = 0; i < procedural.randomInt(1, 3); i++) {
-            this.planets.push(new Planet(this.seed + procedural.randomInt(0, 1000), 'hot'));
-        }
+        this.star = new Star(this.seed + procedural.randomInt(1, 1000));
 
-        for (let i = 0; i < procedural.randomInt(2, 3); i++) {
-            this.planets.push(new Planet(this.seed + procedural.randomInt(0, 1000), 'comfortable', true));
-        }
+        const planetFactory = new PlanetFactory(this.star.type);
 
-        for (let i = 0; i < procedural.randomInt(1, 3); i++) {
-            this.planets.push(new Planet(this.seed + procedural.randomInt(0, 1000), 'cold'));
+        let currentOrbit = procedural.randomFloat(this.star.temperatureZones[0] / 10, this.star.temperatureZones[0]);
+
+        for (let i = 0; i < this.star.planets; i++) {
+            const temperatureZone = this.star.temperatureZones.findIndex((z) => currentOrbit <= z) || 0;
+            const planetSeed = this.seed + procedural.randomInt(0, 1000);
+            const planet = planetFactory.create(planetSeed, temperatureZone as TStarTemperatureZoneIndex, currentOrbit);
+            this.planets.push(planet);
+
+            currentOrbit *= procedural.randomFloat(1.25, 3.25);
         }
     }
 
@@ -35,7 +41,7 @@ export class System {
         if (!planet) {
             return;
         }
-        planet.colonized = true;
+        //planet.colonized = true;
 
         window.dispatchEvent(new CustomEvent('ui:systemUpdate'));
         window.dispatchEvent(new CustomEvent('ui:planetUpdate'));
@@ -46,11 +52,11 @@ export class System {
     }
 
     getComfortablePlanetsIds() {
-        return this.planets.filter(p => p.temperatureType === 'comfortable').sort((a, b) => b.perspectiveRate - a.perspectiveRate).map(p => p.id);
+        //return this.planets.filter(p => p.temperatureZone === 1).sort((a, b) => b.perspectiveRate - a.perspectiveRate).map(p => p.id);
     }
 
     getColonizedPlanetsIds() {
-        return this.planets.filter(p => p.colonized).map(p => p.id);
+        //return this.planets.filter(p => p.colonized).map(p => p.id);
     }
 
     selectPlanet(id: string) {
@@ -63,34 +69,6 @@ export class System {
 
     getSelectedPlanet() {
         return this.getPlanetById(this.selectedPlanetId);
-    }
-}
-
-const temperatures = {
-    K: [3500, 5000],
-    G: [5000, 6000],
-    F: [6000, 7500],
-};
-
-class Star {
-    seed = 0;
-    name = '';
-    type = '';
-    temperature = 0;
-    uiColor = '';
-
-
-    constructor(seed: number) {
-        const procedural = new Procedural(seed);
-        this.seed = seed;
-        this.name = generatePlanetName(this.seed);
-        const type = procedural.randomFromArray(['K','K','K', 'G','G', 'F']);
-        const subType = procedural.randomInt(0, 9);
-        this.type = type + subType + 'V';
-
-        // @ts-ignore
-        this.temperature = lerp(temperatures[type][0], temperatures[type][0], (10 - subType) / 10);
-        this.uiColor = `rgb(${KtRGB(this.temperature).join(',')})`;
     }
 }
 
@@ -107,13 +85,13 @@ export class Planet {
     colonized = false;
     perspectiveRate = 0;
     planetBuilder: PlanetBuilder | null = null;
-
+    orbitRadius: number = 0;
     cities: IPlanetCity[] = [];
 
     // special
     texture = '';
     texturePosition = 'left';
-    constructor(seed: number, temperatureType: string, livable: boolean = false) {
+    constructor(seed: number, temperatureType: string, orbitRadius: number, livable: boolean = false) {
         const procedural = new Procedural(seed);
         const generalTypes = ['selena', 'selena', 'selena', 'miniterra', 'terra', 'superterra','superterra', 'neptun', 'jovian', 'jovian'];
         const livableTypes = ['miniterra', 'miniterra', 'terra', 'superterra'];
@@ -123,6 +101,7 @@ export class Planet {
         this.name = generatePlanetName(this.seed);
         this.type = livable ? procedural.randomFromArray(livableTypes) : procedural.randomFromArray(generalTypes);
         this.temperatureType = temperatureType;
+        this.orbitRadius = orbitRadius;
 
         this.texturePosition = procedural.randomFromArray(['left', 'center', 'right']);
 

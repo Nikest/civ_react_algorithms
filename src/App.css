@@ -366,7 +366,106 @@ button:hover {
 }
 
 .system3D-view-panel {
-  height: 80vh;
+  height: calc(100vh - 80px);
+  position: relative;
+
+  .info {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: 400ms;
+    opacity: 0.5;
+    width: 260px;
+
+    &.planet {
+      width: 360px;
+    }
+
+    .graphic-star {
+      height: 100px;
+      background: rgba(255, 255, 255, 0.2);
+      overflow: hidden;
+      position: relative;
+      border-radius: 5px;
+      display: grid;
+      align-items: center;
+      justify-content: right;
+
+      .target-star {
+        transform: translateX(12px) translateY(12px);
+        width: 75px;
+        height: 75px;
+        border-radius: 100%;
+        background: #fff;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+
+      .sun-compare {
+        width: 75px;
+        height: 75px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 100%;
+        position: relative;
+      }
+    }
+
+    .graphic-planet {
+      height: 200px;
+      background: rgba(255, 255, 255, 0.2);
+      overflow: hidden;
+      position: relative;
+      border-radius: 5px;
+      display: grid;
+      align-items: center;
+      justify-content: right;
+
+      .target-planet {
+        transform: translateX(12px) translateY(12px);
+        width: 175px;
+        height: 175px;
+        border-radius: 100%;
+        background: #fff;
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        .planet-composition {
+          border-radius: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+
+        .planet-surface {
+          background: #753a3a;
+        }
+
+        .planet-mantle {
+          background: #ea8553;
+        }
+
+        .planet-core {
+          background: #ffecab;
+        }
+      }
+
+      .earth-compare {
+        width: 175px;
+        height: 175px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 100%;
+      }
+    }
+
+    &:hover {
+      opacity: 1;
+    }
+  }
 
   .system3D-view-container {
     height: 100%;

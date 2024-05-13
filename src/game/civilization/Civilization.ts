@@ -83,18 +83,18 @@ export class Civilization {
     colonizePlanet(planetId: string) {
         const planet = window.game.system.getPlanetById(planetId);
 
-        planet?.getPlanetBuilder().then((planetBuilder) => {
-            const bestLocation = planetBuilder.getBestCityLocation();
-
-            const city = new City({
-                seed: this.procedural.randomInt(0, 100000),
-                planetId: planetId,
-                planetName: planet.name,
-                centerPlanetTileIndex: bestLocation.planetTile.index,
-            });
-
-            this.cities.push(city);
-        });
+        // planet?.getPlanetBuilder().then((planetBuilder) => {
+        //     const bestLocation = planetBuilder.getBestCityLocation();
+        //
+        //     const city = new City({
+        //         seed: this.procedural.randomInt(0, 100000),
+        //         planetId: planetId,
+        //         planetName: planet.name,
+        //         centerPlanetTileIndex: bestLocation.planetTile.index,
+        //     });
+        //
+        //     this.cities.push(city);
+        // });
 
         window.game.system.colonize(planetId);
         this.colonizedPlanetsIds.push(planetId);

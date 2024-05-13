@@ -41,30 +41,30 @@ export const SystemPanel = () => {
                 ]} />
             </div>
 
-            {planets.map(planet => {
-                let texture = '';
-                if (planet.texture) {
-                    texture = planetTextures[planet.texture as keyof typeof planetTextures];
-                }
+            {/*{planets.map(planet => {*/}
+            {/*    let texture = '';*/}
+            {/*    if (planet.texture) {*/}
+            {/*        texture = planetTextures[planet.texture as keyof typeof planetTextures];*/}
+            {/*    }*/}
 
-                return (
-                <div key={planet.id} className="item" onClick={() => window.game.system.selectPlanet(planet.id)}>
-                    <div className="block">
-                        <div className={`planet type-${planet.type} temperature-${planet.temperatureType}`}>
-                            <div data-texture={planet.texturePosition} className={`planet-texture`} style={{
-                                backgroundImage: `url(${texture})`,
-                                backgroundSize: 'cover',
-                                backgroundPositionX: planet.texturePosition,
-                            }}></div>
-                        </div>
-                    </div>
-                    <p className="name capitalize">{planet.name}</p>
-                    <Info data={[
-                        {key: 'Тип', value: planet.type},
-                        {key: 'Температура', value: planet.temperatureType},
-                    ]} />
-                </div>
-            )})}
+            {/*    return (*/}
+            {/*    <div key={planet.id} className="item" onClick={() => window.game.system.selectPlanet(planet.id)}>*/}
+            {/*        <div className="block">*/}
+            {/*            <div className={`planet type-${planet.type} temperature-${planet.temperatureType}`}>*/}
+            {/*                <div data-texture={planet.texturePosition} className={`planet-texture`} style={{*/}
+            {/*                    backgroundImage: `url(${texture})`,*/}
+            {/*                    backgroundSize: 'cover',*/}
+            {/*                    backgroundPositionX: planet.texturePosition,*/}
+            {/*                }}></div>*/}
+            {/*            </div>*/}
+            {/*        </div>*/}
+            {/*        <p className="name capitalize">{planet.name}</p>*/}
+            {/*        <Info data={[*/}
+            {/*            {key: 'Тип', value: planet.type},*/}
+            {/*            {key: 'Температура', value: planet.temperatureType},*/}
+            {/*        ]} />*/}
+            {/*    </div>*/}
+            {/*)})}*/}
         </div>
     );
 }

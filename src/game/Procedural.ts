@@ -1,8 +1,8 @@
 export class Procedural {
     seed: number;
     rand: any;
-    constructor(seed: number) {
-        this.seed = Math.floor(Math.random() * (1000000 - 1 + 1) + 1);
+    constructor(seed: number = 123) {
+        this.seed = seed;
         // @ts-ignore
         this.rand = new Math.seedrandom(seed);
     }

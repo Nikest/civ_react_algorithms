@@ -109,7 +109,7 @@ export class Fleet {
         selectPlanetToColonize: () => {
             clearInterval(this.timelineWatcher);
             const comfortablePlanetsIds = window.game.system.getComfortablePlanetsIds();
-            const mostPerspectivePlanet = window.game.system.getPlanetById(comfortablePlanetsIds[0]);
+            const mostPerspectivePlanet = window.game.system.planets[0];
 
             this.processDescription = `Команда исследователей выбирает планету ${capitalizeFirstLetter(mostPerspectivePlanet?.name || '')} для начала колонизации.`;
 

@@ -34,3 +34,48 @@ export function formatNumber(number: number) {
 export function lerp(a: number, b: number, t: number): number {
     return a + (b - a) * t;
 }
+
+export function lerpRounded(a: number, b: number, t: number, digitsLength: number = 0) {
+    return parseFloat(lerp(a, b, t).toFixed(digitsLength));
+}
+
+export function numFixed(num: number, digits: number = 0) {
+    return parseFloat(num.toFixed(digits));
+}
+
+export type IFrequency<T extends string>  = {
+    [key in T]: number;
+}
+
+export function findInFreq<T extends string>(freq: IFrequency<T>, range: number): T {
+    let current = 0;
+    return Object.keys(freq).find((key) => {
+        if (freq[key as T] === 0) return false;
+
+        current += freq[key as T];
+        return range <= current;
+    }) as T || '' as T;
+}
+
+type MakeOptional<T> = {
+    [P in keyof T]?: T[P];
+};
+export function createFreqAndExclude<T extends string>(fieldObj: Record<T, number>, exclude: string[]): Record<T, number> {
+    const excludedObj: MakeOptional<Record<T, number>> = {};
+    let sum = 0;
+
+    Object.keys(fieldObj).forEach(key => {
+        if (!exclude.includes(key)) {
+            const val = fieldObj[key as T];
+            sum += val;
+            excludedObj[key as T] = val;
+        }
+    });
+
+    Object.keys(excludedObj).forEach(key => {
+        const val: number = excludedObj[key as T] as never as number;
+        excludedObj[key as T] = Math.round((val / sum) * 100)
+    });
+
+    return excludedObj as Record<T, number>;
+}

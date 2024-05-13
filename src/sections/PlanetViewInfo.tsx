@@ -7,7 +7,7 @@ export const PlanetViewInfo = () => {
     useEffect(() => {
         window.addEventListener('ui:planetUpdate', () => {
             const colonizedPlanetsIds = window.game.system.getColonizedPlanetsIds();
-            setPlanetId(colonizedPlanetsIds[0] || '');
+            setPlanetId('');
         });
     }, []);
 
@@ -17,28 +17,28 @@ export const PlanetViewInfo = () => {
         return null;
     }
 
-    const planetBuilder = planet.planetBuilder;
+    const planetBuilder = null //planet.planetBuilder;
 
-    if (!planetBuilder) {
+    //if (!planetBuilder) {
         return null;
-    }
+    //}
 
-    const continents = planetBuilder.lands.filter(l => l.type === 'continent');
-
-    return (
-        <Box>
-            <Title>Планета <span className={'capitalize'}><b>{planet.name}</b></span></Title>
-            <Grid line={10}>
-                <span>Континенты:</span>
-
-                {continents.map((land, index) => (
-                    <div key={index}>
-                        <span key={index} className={'capitalize'}><b>{land.name}</b></span>
-                        <p>Размер: {land.indexes.length}</p>
-                    </div>
-                ))}
-
-            </Grid>
-        </Box>
-    );
+    // const continents = planetBuilder.lands.filter(l => l.type === 'continent');
+    //
+    // return (
+    //     <Box>
+    //         <Title>Планета <span className={'capitalize'}><b>{planet.name}</b></span></Title>
+    //         <Grid line={10}>
+    //             <span>Континенты:</span>
+    //
+    //             {continents.map((land, index) => (
+    //                 <div key={index}>
+    //                     <span key={index} className={'capitalize'}><b>{land.name}</b></span>
+    //                     <p>Размер: {land.indexes.length}</p>
+    //                 </div>
+    //             ))}
+    //
+    //         </Grid>
+    //     </Box>
+    // );
 }

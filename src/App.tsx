@@ -17,8 +17,8 @@ function App() {
     <div className="App">
         <TimerPanel />
         <System3DView />
-        <SystemPanel />
-        <PlanetViewPanel />
+        {/*<SystemPanel />*/}
+        {/*<PlanetViewPanel />*/}
         <CivilizationPanel />
         <PersonsPanel />
         <ColonialFleet />

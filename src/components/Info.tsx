@@ -2,7 +2,7 @@ import React from 'react';
 
 interface Info {
     key: string;
-    value: string | number;
+    value: string | number | Info[];
 }
 
 interface InfoProps {
@@ -15,9 +15,14 @@ export const Info = ({ data, children }: InfoProps) => {
             {children}
             <div className={'info-wrap'}>
                 {data.map((info, index) => (
-                    <React.Fragment key={info.value}>
+                    <React.Fragment key={JSON.stringify(info.value)}>
                         <span className={'info-key'}>{info.key}</span>
-                        <span className={'info-value'}>{info.value}</span>
+                        {
+                            typeof info.value !== 'object' && <span className={'info-value'}>{info.value}</span>
+                        }
+                        {
+                            typeof info.value === 'object' && <Info data={info.value} />
+                        }
                     </React.Fragment>
                 ))}
             </div>

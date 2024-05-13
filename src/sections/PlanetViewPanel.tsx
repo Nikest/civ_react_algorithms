@@ -86,40 +86,40 @@ export const PlanetViewPanel = () => {
 
             window.addEventListener('ui:planetUpdate', () => {
                 const colonizedPlanetsIds = window.game.system.getColonizedPlanetsIds();
-                const selectedPlanet = window.game.system.getPlanetById(colonizedPlanetsIds[0]);
-                if (!selectedPlanet) {
-                    return;
-                }
+                // const selectedPlanet = window.game.system.getPlanetById(colonizedPlanetsIds[0]);
+                // if (!selectedPlanet) {
+                //     return;
+                // }
 
                 scene.remove.apply(scene, scene.children);
                 scene.rotation.y = 0;
 
-                selectedPlanet?.getPlanetBuilder().then((planetBuilder: PlanetBuilder) => {
-                    planetBuilder.getHexaSphere().tiles.forEach((tile, index: number) => {
-                        const type = tile.planetTile.type;
-                        let color = type === 'liquid' ? 'rgb(32,46,72)' : tile.planetTile.isColonized ? 'rgb(192,192,192)' : 'rgb(182,143,78)';
-
-                        if (tile.planetTile.isPolarCircle) {
-                            color = 'rgb(255,255,255)';
-                        }
-
-                        const material = new THREE.MeshBasicMaterial({ color });
-                        const points = tile.boundary.map((p: any) => new THREE.Vector3(p.x, p.y, p.z));
-                        const geometry = new THREE.BufferGeometry().setFromPoints(points);
-                        const faces = [];
-                        for (let i = 1; i < tile.boundary.length - 1; i++) {
-                            faces.push(0, i, i + 1);
-                        }
-                        geometry.setIndex(faces);
-                        geometry.computeVertexNormals();
-                        const mesh = new THREE.Mesh(geometry, material);
-                        // @ts-ignore
-                        mesh.userData = { tileIndex: index };
-                        scene.add(mesh);
-                    });
-
-                    window.dispatchEvent(new CustomEvent('ui:planetUpdate:info', { detail: 'land' }));
-                });
+                // selectedPlanet?.getPlanetBuilder().then((planetBuilder: PlanetBuilder) => {
+                //     planetBuilder.getHexaSphere().tiles.forEach((tile, index: number) => {
+                //         const type = tile.planetTile.type;
+                //         let color = type === 'liquid' ? 'rgb(32,46,72)' : tile.planetTile.isColonized ? 'rgb(192,192,192)' : 'rgb(182,143,78)';
+                //
+                //         if (tile.planetTile.isPolarCircle) {
+                //             color = 'rgb(255,255,255)';
+                //         }
+                //
+                //         const material = new THREE.MeshBasicMaterial({ color });
+                //         const points = tile.boundary.map((p: any) => new THREE.Vector3(p.x, p.y, p.z));
+                //         const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                //         const faces = [];
+                //         for (let i = 1; i < tile.boundary.length - 1; i++) {
+                //             faces.push(0, i, i + 1);
+                //         }
+                //         geometry.setIndex(faces);
+                //         geometry.computeVertexNormals();
+                //         const mesh = new THREE.Mesh(geometry, material);
+                //         // @ts-ignore
+                //         mesh.userData = { tileIndex: index };
+                //         scene.add(mesh);
+                //     });
+                //
+                //     window.dispatchEvent(new CustomEvent('ui:planetUpdate:info', { detail: 'land' }));
+                // });
             });
 
             window.addEventListener('ui:planetUpdate:showResource', ({ detail }: any) => {
@@ -134,65 +134,65 @@ export const PlanetViewPanel = () => {
                 scene.remove.apply(scene, scene.children);
 
                 const colonizedPlanetsIds = window.game.system.getColonizedPlanetsIds();
-                const selectedPlanet = window.game.system.getPlanetById(colonizedPlanetsIds[0]);
-                selectedPlanet?.getPlanetBuilder().then((planetBuilder: PlanetBuilder) => {
-                    const procedural = new Procedural(123);
-                    const landsColors: string[] = [];
-
-                    planetBuilder.getHexaSphere().tiles.forEach((tile: any, index: number) => {
-                        const resource = tile.planetTile[detail];
-                        const type = tile.planetTile.type;
-
-                        let color = type === 'liquid' ? 'rgb(32,46,72)' : 'rgb(0, 0, 0)';
-
-                        if (type === 'land') {
-                            switch (detail) {
-                                case 'land':
-                                    color = `rgb(${colorLand.r}, ${colorLand.g}, ${colorLand.b})`;
-                                    break;
-                                case 'lands':
-                                    const landGroup = tile.planetTile.landGroup;
-                                    if (!landsColors[landGroup]) {
-                                        landsColors[landGroup] = `rgb(${procedural.randomInt(100, 255)}, ${procedural.randomInt(100, 255)}, ${procedural.randomInt(100, 255)})`;
-                                    }
-                                    color = landsColors[landGroup];
-                                    break;
-                                case 'iron':
-                                    color = `rgb(${Math.floor(colorIron.r * resource)}, ${Math.floor(colorIron.g * resource)}, ${Math.floor(colorIron.b * resource)})`;
-                                    break;
-                                case 'copper':
-                                    color = `rgb(${Math.floor(colorCopper.r * resource)}, ${Math.floor(colorCopper.g * resource)}, ${Math.floor(colorCopper.b * resource)})`;
-                                    break;
-                                case 'lithium':
-                                    color = `rgb(${Math.floor(colorLithium.r * resource)}, ${Math.floor(colorLithium.g * resource)}, ${Math.floor(colorLithium.b * resource)})`;
-                                    break;
-                                case 'aluminum':
-                                    color = `rgb(${Math.floor(colorAluminum.r * resource)}, ${Math.floor(colorAluminum.g * resource)}, ${Math.floor(colorAluminum.b * resource)})`;
-                                    break;
-                                case 'titanium':
-                                    color = `rgb(${Math.floor(colorTitanium.r * resource)}, ${Math.floor(colorTitanium.g * resource)}, ${Math.floor(colorTitanium.b * resource)})`;
-                                    break;
-                                case 'uranium':
-                                    color = `rgb(${Math.floor(colorUranium.r * resource)}, ${Math.floor(colorUranium.g * resource)}, ${Math.floor(colorUranium.b * resource)})`;
-                                    break;
-                            }
-                        }
-
-                        const material = new THREE.MeshBasicMaterial({ color });
-                        const points = tile.boundary.map((p: any) => new THREE.Vector3(p.x, p.y, p.z));
-                        const geometry = new THREE.BufferGeometry().setFromPoints(points);
-                        const faces = [];
-                        for (let i = 1; i < tile.boundary.length - 1; i++) {
-                            faces.push(0, i, i + 1);
-                        }
-                        geometry.setIndex(faces);
-                        geometry.computeVertexNormals();
-                        const mesh = new THREE.Mesh(geometry, material);
-                        // @ts-ignore
-                        mesh.userData = { tileIndex: index };
-                        scene.add(mesh);
-                    });
-                });
+                // const selectedPlanet = window.game.system.getPlanetById(colonizedPlanetsIds[0]);
+                // selectedPlanet?.getPlanetBuilder().then((planetBuilder: PlanetBuilder) => {
+                //     const procedural = new Procedural(123);
+                //     const landsColors: string[] = [];
+                //
+                //     planetBuilder.getHexaSphere().tiles.forEach((tile: any, index: number) => {
+                //         const resource = tile.planetTile[detail];
+                //         const type = tile.planetTile.type;
+                //
+                //         let color = type === 'liquid' ? 'rgb(32,46,72)' : 'rgb(0, 0, 0)';
+                //
+                //         if (type === 'land') {
+                //             switch (detail) {
+                //                 case 'land':
+                //                     color = `rgb(${colorLand.r}, ${colorLand.g}, ${colorLand.b})`;
+                //                     break;
+                //                 case 'lands':
+                //                     const landGroup = tile.planetTile.landGroup;
+                //                     if (!landsColors[landGroup]) {
+                //                         landsColors[landGroup] = `rgb(${procedural.randomInt(100, 255)}, ${procedural.randomInt(100, 255)}, ${procedural.randomInt(100, 255)})`;
+                //                     }
+                //                     color = landsColors[landGroup];
+                //                     break;
+                //                 case 'iron':
+                //                     color = `rgb(${Math.floor(colorIron.r * resource)}, ${Math.floor(colorIron.g * resource)}, ${Math.floor(colorIron.b * resource)})`;
+                //                     break;
+                //                 case 'copper':
+                //                     color = `rgb(${Math.floor(colorCopper.r * resource)}, ${Math.floor(colorCopper.g * resource)}, ${Math.floor(colorCopper.b * resource)})`;
+                //                     break;
+                //                 case 'lithium':
+                //                     color = `rgb(${Math.floor(colorLithium.r * resource)}, ${Math.floor(colorLithium.g * resource)}, ${Math.floor(colorLithium.b * resource)})`;
+                //                     break;
+                //                 case 'aluminum':
+                //                     color = `rgb(${Math.floor(colorAluminum.r * resource)}, ${Math.floor(colorAluminum.g * resource)}, ${Math.floor(colorAluminum.b * resource)})`;
+                //                     break;
+                //                 case 'titanium':
+                //                     color = `rgb(${Math.floor(colorTitanium.r * resource)}, ${Math.floor(colorTitanium.g * resource)}, ${Math.floor(colorTitanium.b * resource)})`;
+                //                     break;
+                //                 case 'uranium':
+                //                     color = `rgb(${Math.floor(colorUranium.r * resource)}, ${Math.floor(colorUranium.g * resource)}, ${Math.floor(colorUranium.b * resource)})`;
+                //                     break;
+                //             }
+                //         }
+                //
+                //         const material = new THREE.MeshBasicMaterial({ color });
+                //         const points = tile.boundary.map((p: any) => new THREE.Vector3(p.x, p.y, p.z));
+                //         const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                //         const faces = [];
+                //         for (let i = 1; i < tile.boundary.length - 1; i++) {
+                //             faces.push(0, i, i + 1);
+                //         }
+                //         geometry.setIndex(faces);
+                //         geometry.computeVertexNormals();
+                //         const mesh = new THREE.Mesh(geometry, material);
+                //         // @ts-ignore
+                //         mesh.userData = { tileIndex: index };
+                //         scene.add(mesh);
+                //     });
+                // });
             });
 
 

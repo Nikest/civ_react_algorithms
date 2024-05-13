@@ -66,7 +66,7 @@ export class City {
             planetTileIndex: centerPlanetTileIndex,
         }));
 
-        window.game.system.getPlanetById(planetId)?.setCity(this.id, districtId, centerPlanetTileIndex);
+        //window.game.system.getPlanetById(planetId)?.setCity(this.id, districtId, centerPlanetTileIndex);
 
         this.developmentStage = developmentStages[0];
     }
