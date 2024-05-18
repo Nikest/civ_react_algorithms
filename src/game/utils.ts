@@ -39,43 +39,62 @@ export function lerpRounded(a: number, b: number, t: number, digitsLength: numbe
     return parseFloat(lerp(a, b, t).toFixed(digitsLength));
 }
 
+export function easeOutQuad(a: number, b: number, t: number): number {
+    return a + (b - a) * (1 - (1 - t) * (1 - t));
+}
+
+export function easeOutQuadRounded(a: number, b: number, t: number, digitsLength: number = 0) {
+    return parseFloat(easeOutQuad(a, b, t).toFixed(digitsLength));
+}
+
+export function easeInOutCirc(a: number, b: number, t: number) {
+    if (t < 0.5) {
+        return a + (b - a) * (1 - Math.sqrt(1 - 2 * t * 2 * t)) / 2;
+    } else {
+        return a + (b - a) * (Math.sqrt(1 - (2 - 2 * t) * (2 - 2 * t)) + 1) / 2;
+    }
+}
+
+export function easeInOutSine(a: number, b: number, t: number) {
+    return a + (b - a) * (0.5 - 0.5 * Math.cos(Math.PI * t));
+}
+
+export function easeInOutSineRounded(a: number, b: number, t: number, digitsLength: number = 0) {
+    return parseFloat(easeInOutSine(a, b, t).toFixed(digitsLength));
+}
+
 export function numFixed(num: number, digits: number = 0) {
     return parseFloat(num.toFixed(digits));
 }
 
-export type IFrequency<T extends string>  = {
-    [key in T]: number;
+export function easeInExpo(a: number, b: number, t: number) {
+    return a + (b - a) * (t === 0 ? 0 : Math.pow(2, 10 * (t - 1)));
 }
 
-export function findInFreq<T extends string>(freq: IFrequency<T>, range: number): T {
-    let current = 0;
-    return Object.keys(freq).find((key) => {
-        if (freq[key as T] === 0) return false;
-
-        current += freq[key as T];
-        return range <= current;
-    }) as T || '' as T;
+export function easeInExpoRounded(a: number, b: number, t: number, digitsLength: number = 0) {
+    return parseFloat(easeInExpo(a, b, t).toFixed(digitsLength));
 }
 
-type MakeOptional<T> = {
-    [P in keyof T]?: T[P];
-};
-export function createFreqAndExclude<T extends string>(fieldObj: Record<T, number>, exclude: string[]): Record<T, number> {
-    const excludedObj: MakeOptional<Record<T, number>> = {};
-    let sum = 0;
+export type IFrequency<T extends string> = Record<T, number>;
+export type IFrequencyEx<T extends string> = Record<T, boolean>;
 
-    Object.keys(fieldObj).forEach(key => {
-        if (!exclude.includes(key)) {
-            const val = fieldObj[key as T];
-            sum += val;
-            excludedObj[key as T] = val;
-        }
+export function calculateInFrequency<T extends string>(frequencies: IFrequency<T>, select: number, excludes: T[] = []): T {
+    const freqFiltered = {} as IFrequency<T>;
+    //const excludes = Object.keys(excludesFreq).filter((ef) => excludesFreq[ef as T]) as T[];
+
+    Object.keys(frequencies).filter(f => !excludes.includes(f as T)).forEach(f => freqFiltered[f as T] = frequencies[f as T]);
+    const freqNumbers: number[] = Object.values(freqFiltered);
+    const totalFreq = freqNumbers.reduce((sum, f) => sum + f, 0);
+
+    Object.keys(freqFiltered).forEach((key, f) => {
+        freqFiltered[key as T] = (freqFiltered[key as T] / totalFreq) * 100;
     });
 
-    Object.keys(excludedObj).forEach(key => {
-        const val: number = excludedObj[key as T] as never as number;
-        excludedObj[key as T] = Math.round((val / sum) * 100)
-    });
+    let cumulativeFrequency = 0;
+    for (let [key, f] of Object.entries(freqFiltered)) {
+        cumulativeFrequency += f as number;
+        if (select <= cumulativeFrequency) return key as T;
+    }
 
-    return excludedObj as Record<T, number>;
+    return '' as T;
 }

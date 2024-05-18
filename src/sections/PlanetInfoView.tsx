@@ -15,7 +15,7 @@ export const PlanetInfoView = ({ id }: { id: string }) => {
         value: planetInfo.planetType
     },{
         key: 'Orbit',
-        value: planetInfo.orbitRadius.toFixed(2)
+        value: `${planetInfo.orbitRadius.toFixed(2)} AU`
     },{
         key: 'Mass',
         value: (planetInfo.mass / 100).toFixed(2)
@@ -29,17 +29,14 @@ export const PlanetInfoView = ({ id }: { id: string }) => {
         key: 'Composition',
         value: [
             {
-                key: 'Liquid',
-                value: planetInfo.surface.liquidLevel === 0 ? 'not exist' : `${planetInfo.surface.liquidType}`
-            },{
                 key: 'Surface',
-                value: `${planetInfo.surface.surfaceType}, size: ${(planetInfo.surface.size * 100).toFixed()}%`
+                value: `${planetInfo.surfaceType}, liquid: ${planetInfo.surfaceLiquidSize > 0.5 ? planetInfo.surfaceLiquidType + ' (' + planetInfo.surfaceLiquidSize + ')' : 'none'}`
             },{
                 key: 'Mantle',
-                value: `${planetInfo.mantle.type}, size: ${(planetInfo.mantle.size * 100).toFixed()}%`
+                value: `Asteno: ${planetInfo.asthenosphereType}, Outer: ${planetInfo.mantleOuterType}, Inner: ${planetInfo.mantleInnerType}`
             },{
                 key: 'Core',
-                value: `${planetInfo.core.type}, size: ${(planetInfo.core.size * 100).toFixed()}%`
+                value: `${planetInfo.coreType}`
             },
         ],
     },{
@@ -47,13 +44,13 @@ export const PlanetInfoView = ({ id }: { id: string }) => {
         value: planetInfo.magneticFieldPower
     },{
         key: 'Atmosphere',
-        value: planetInfo.atmosphere.preassure === 0 ? 'not exist' : 'exist'
+        value: planetInfo.atmospherePressure > 0 ? planetInfo.atmospherePressure + ' atm' : 'none'
     }];
 
     const viewSize = planetInfo.radius >= 1 ? 1 / planetInfo.radius : (1 + (1 - planetInfo.radius));
 
-    const mantleSizePx = (175 * (planetInfo.mantle.size + planetInfo.core.size)) + 'px';
-    const coreSizePx = (175 * planetInfo.core.size) + 'px';
+    const mantleSizePx = (175 * ((planetInfo.mantleSize / 100) + (planetInfo.coreSize / 100))) + 'px';
+    const coreSizePx = (175 * (planetInfo.coreSize / 100)) + 'px';
 
     return (
         <div className={'info planet'}>

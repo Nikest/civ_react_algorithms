@@ -1,10 +1,11 @@
 import { Procedural } from '../../Procedural';
 import * as utils from '../../utils';
-import * as planets from './planets';
-import { TPlanetType, AbstractPlanet, IPlanetProps } from './AbstractPlanet';
+import * as planets from './index';
+import { TPlanetType } from './planetTypes';
+import { AbstractPlanet, IAbstractPlanetProps } from './AbstractPlanet';
 import { TStarTemperatureZoneIndex, TStarType } from '../star/Star';
 
-type PlanetConstructor = new (args: IPlanetProps) => AbstractPlanet;
+type PlanetConstructor = new (args: IAbstractPlanetProps) => AbstractPlanet;
 
 type TPlanetsClassesMap = {
     [key in TPlanetType]: PlanetConstructor;
@@ -13,10 +14,10 @@ type TPlanetsClassesMap = {
 const planetsClassesMap: TPlanetsClassesMap = {
     selena: planets.PlanetSelena,
     miniterra: planets.PlanetMiniterra,
-    terra: planets.PlanetSelena,
-    superterra: planets.PlanetSelena,
-    neptunian: planets.PlanetSelena,
-    jovian: planets.PlanetSelena,
+    terra: planets.PlanetTerra,
+    superterra: planets.PlanetMiniterra,
+    neptunian: planets.PlanetMiniterra,
+    jovian: planets.PlanetMiniterra,
 }
 
 export class PlanetFactory {
@@ -35,15 +36,15 @@ export class PlanetFactory {
         this.starType = starType;
     }
 
-
-    create(seed: number, temperatureZone: TStarTemperatureZoneIndex, orbitRadius: number) {
+    create(seed: number, temperatureZone: TStarTemperatureZoneIndex, orbitRadius: number, starMass: number) {
         const rand = new Procedural(seed);
-        const planetType: TPlanetType = utils.findInFreq(this.planetTypeFreq, rand.randomInt(0, 100));
+        const planetType: TPlanetType = utils.calculateInFrequency<TPlanetType>(this.planetTypeFreq, rand.randomFloat(0, 100));
 
         return new planetsClassesMap[planetType]({
             seed: rand.randomInt(1, 100000000),
             temperatureZone,
             orbitRadius,
+            starMass,
         });
     }
 }

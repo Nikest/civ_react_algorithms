@@ -124,6 +124,7 @@ export const System3DView = () => {
             const planetMaterial = new THREE.MeshPhongMaterial({ color: 0x888888 });
             orbits = [];
             for (let i = 0; i < window.game.system.planets.length; i++) {
+
                 const planetInfo = window.game.system.planets[i];
                 const orbitRadius = planetInfo.orbitRadius * astronomicalSizeMult; // Starting at 5 and increasing by 20 each time
                 const circleGeometry = new THREE.CircleGeometry(orbitRadius, 64);
@@ -132,12 +133,14 @@ export const System3DView = () => {
                 for (let j = 0; j < points.length; j += 3) {
                     vertices.push(new THREE.Vector3(points[j], points[j+1], points[j+2]));
                 }
+
                 const orbitGeometry = new THREE.BufferGeometry().setFromPoints(vertices);
                 const orbit = new THREE.LineLoop(orbitGeometry, orbitMaterial);
                 orbit.rotation.x = Math.PI * 0.75;
                 orbit.rotation.z = Math.PI * Math.random();
                 orbit.position.y = top;
-                console.log(planetInfo.radius * planetSizeMult);
+                orbit.userData = { angularVelocity: planetInfo.orbitAngularVelocity, id: planetInfo.id, type: 'orbit' };
+
                 // Add planet
                 const planetGeometry = new THREE.SphereGeometry(planetInfo.radius * planetSizeMult, 32, 32);
                 const planet = new THREE.Mesh(planetGeometry, planetMaterial);
@@ -157,7 +160,8 @@ export const System3DView = () => {
                 requestAnimationFrame(animate);
 
                 orbits.forEach((orbit, i) => {
-                    orbit.rotation.z += (10 - i) / 100000;
+                    const theta = (orbit.userData.angularVelocity * window.game.timer.elapsedTimeInSeconds()) % (2 * Math.PI);
+                    orbit.rotation.z = theta;
                 })
                 renderer.render(scene, camera);
             };

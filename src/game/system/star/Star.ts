@@ -1,4 +1,4 @@
-import { lerpRounded, IFrequency, findInFreq, numFixed } from '../../utils';
+import { lerpRounded, IFrequency, calculateInFrequency, numFixed } from '../../utils';
 import { solarProps } from '../SpaceUtils';
 import { SpaceBody } from '../SpaceBody';
 // @ts-ignore
@@ -87,14 +87,14 @@ export class Star extends SpaceBody {
 
         this.className = 'star';
 
-        const type = findInFreq<TStarType>(StarTypeFreq, this.rand.randomInt(0, 100));
+        const type = calculateInFrequency<TStarType>(StarTypeFreq, this.rand.randomFloat(0, 100));
         this.type = type;
 
         const yerkesRawType = this.rand.randomFloat(0, 1000);
         this.yerkesType = Math.floor(10 - (yerkesRawType / 100));
 
         this.typeFullText = `${this.type}${this.yerkesType}V`;
-
+        console.log('type', type);
         // calculating physics parameters
         this.mass = lerpRounded(masses[type][0], masses[type][1], yerkesRawType / 1000, 2);
         this.radius = lerpRounded(radius[type][0], radius[type][1], yerkesRawType / 1000, 2);

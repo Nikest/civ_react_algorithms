@@ -12,11 +12,10 @@ export type TPlanetMantleType =
     'iron'
     | 'silicates'
     | 'carbon'
-    | 'water'
     | 'waterIce'
     | 'nitrogenIce';
 
-export type TPlanetAsthenosphereType = 'silicates' | 'water' | 'carbon' | 'iron';
+export type TPlanetAsthenosphereType = 'silicates' | 'water' | 'waterIce' | 'carbon' | 'iron';
 
 export type TPlanetSurfaceType =
     'regolith'
@@ -24,6 +23,7 @@ export type TPlanetSurfaceType =
     | 'carbon'
     | 'iron'
     | 'solidHydrocarbon'
+    | 'water'
     | 'waterIce'
     | 'nitrogenIce';
 

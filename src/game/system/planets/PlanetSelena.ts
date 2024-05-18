@@ -7,9 +7,12 @@ import {
 import * as spaceUtils from '../SpaceUtils';
 import {
     TPlanetCoreType,
-    TPlanetMantleType,
-    TPlanetType,
+    TPlanetMantleType, TPlanetSurfaceType,
 } from './planetTypes';
+import { solarMass } from '../constants';
+
+const massRange = [0.015, 6];
+const radiusRange = [22, 43];
 
 const coreTypesFreqByZone: Record<TPlanetCoreType, number>[] = [
     { // hot zone
@@ -29,98 +32,171 @@ const coreTypesFreqByZone: Record<TPlanetCoreType, number>[] = [
         silicates: 99
     },
 ];
-const coreSizeByZone = [[20, 70], [20, 60], [12, 50], [9, 40], [5, 30]];
+const coreSizeByZone = [[30, 70], [30, 65], [25, 50], [20, 40], [18, 38]];
 
-const mantleTypesFreqByZone_RAW: Record<TPlanetMantleType, number>[] = [
+const mantleTypesFreqByZone: Record<TPlanetMantleType, number>[] = [
     {   // hot zone
         iron: 8,
         silicates: 87,
-        water: 0,
         carbon: 5,
         waterIce: 0,
         nitrogenIce: 0,
     }, { // warm zone
         iron: 4,
         silicates: 91,
-        water: 0,
         carbon: 5,
         waterIce: 0,
         nitrogenIce: 0,
     }, { // cold zone
         iron: 1,
         silicates: 38,
-        water: 60,
         carbon: 1,
-        waterIce: 0,
+        waterIce: 60,
         nitrogenIce: 0,
     }, { // cryogenic zone
         iron: 0,
-        silicates: 10,
-        water: 0,
+        silicates: 2,
         carbon: 0,
-        waterIce: 88,
-        nitrogenIce: 2,
+        waterIce: 93,
+        nitrogenIce: 5,
     }, { // dark zone
         iron: 0,
         silicates: 1,
-        water: 0,
         carbon: 0,
         waterIce: 80,
         nitrogenIce: 9,
     },
 ];
 
+const surfaceTypesFreqByZone: Record<TPlanetSurfaceType, number>[] = [
+    {   // hot zone
+        regolith: 99,
+        silicates: 0,
+        carbon: 0,
+        iron: 1,
+        solidHydrocarbon: 0,
+        water: 0,
+        waterIce: 0,
+        nitrogenIce: 0,
+    },
+    {   // warm zone
+        regolith: 99,
+        silicates: 0,
+        carbon: 0,
+        iron: 1,
+        solidHydrocarbon: 0,
+        water: 0,
+        waterIce: 0,
+        nitrogenIce: 0,
+    },
+    {   // cold zone
+        regolith: 5,
+        silicates: 2,
+        carbon: 0,
+        iron: 1,
+        solidHydrocarbon: 0,
+        water: 0,
+        waterIce: 92,
+        nitrogenIce: 0,
+    },
+    {   // cryogenic zone
+        regolith: 2,
+        silicates: 0,
+        carbon: 0,
+        iron: 0,
+        solidHydrocarbon: 2,
+        water: 0,
+        waterIce: 73,
+        nitrogenIce: 20,
+    },
+    {   // dark zone
+        regolith: 2,
+        silicates: 0,
+        carbon: 0,
+        iron: 0,
+        solidHydrocarbon: 0,
+        water: 0,
+        waterIce: 0,
+        nitrogenIce: 98,
+    },
+]
+
 export class PlanetSelena extends AbstractPlanet {
-    constructor({ seed, temperatureZone, orbitRadius }: IAbstractPlanetProps) {
+    constructor({ seed, temperatureZone, orbitRadius, starMass }: IAbstractPlanetProps) {
         super({
             seed,
             temperatureZone,
             orbitRadius,
+            starMass,
         });
 
         // CORE
-        this.coreType = utils.findInFreq<TPlanetCoreType>(coreTypesFreqByZone[temperatureZone], this.rand.randomInt(0, 100));
+        this.coreType = utils.calculateInFrequency<TPlanetCoreType>(coreTypesFreqByZone[temperatureZone], this.rand.randomFloat(1, 100));
         this.coreSize = this.rand.randomInt(coreSizeByZone[temperatureZone][0], coreSizeByZone[temperatureZone][1]);
 
         ////
 
         // MANTLE
-        const coreIsSilicates = coreType === 'silicates';
+        this.surfaceSize = this.rand.randomInt(2, 5);
+        this.mantleSize = 100 - this.surfaceSize - this.coreSize;
+        const mantleTypeFreq = mantleTypesFreqByZone[temperatureZone];
 
-        const mantleTypeFreq = utils.createFreqAndExclude<TPlanetMantleType>(
-            mantleTypesFreqByZone_RAW[temperatureZone],
-            [coreIsSilicates ? 'iron' : '']
-            );
+        // inner
+        const innerMantleExclude: TPlanetMantleType[] = [];
+        if (this.coreType === 'silicates') innerMantleExclude.push('iron');
+        innerMantleExclude.push('carbon');
 
-        const mantleType = utils.findInFreq<TPlanetMantleType>(mantleTypeFreq, rand.randomInt(1, 100));
-        const mantleSize = 100 - rand.randomInt(2, 5) - coreSize;
+        this.mantleInnerType = utils.calculateInFrequency<TPlanetMantleType>(mantleTypeFreq, this.rand.randomFloat(1, 100), innerMantleExclude);
 
-        let mantle = new PlanetMantle(mantleSize, mantleType);
+        // outer
+        const outerMantleExclude: TPlanetMantleType[] = [];
+        if (this.mantleInnerType !== 'iron') outerMantleExclude.push('iron');
+        if (this.mantleInnerType !== 'silicates') outerMantleExclude.push('silicates');
+
+        this.mantleOuterType = utils.calculateInFrequency<TPlanetMantleType>(mantleTypeFreq, this.rand.randomFloat(1, 100), outerMantleExclude);
+
         ////
 
-        // SURFACE
-        const surfaceSize = 100 - (mantleSize + coreSize);
-        const surface = new PlanetSurface(surfaceSize, 'regolith', false, 'water', 0);
+        //// SURFACE
+        const surfaceTypeExclude: TPlanetSurfaceType[] = [];
+        if (this.mantleOuterType !== 'iron') surfaceTypeExclude.push('iron');
+        this.surfaceType = utils.calculateInFrequency<TPlanetSurfaceType>(surfaceTypesFreqByZone[temperatureZone], this.rand.randomFloat(1, 100), surfaceTypeExclude);
+
         ////
 
-        mantle.modify(rand.seed, core, surface);
+        //// ASTENOSPHERE
+        if (this.surfaceType === 'waterIce' || this.surfaceType === 'nitrogenIce') {
+            this.asthenosphereType = temperatureZone === 4 ? 'waterIce' : 'water';
+        } else if (this.surfaceType === 'iron') {
+            this.asthenosphereType = 'iron';
+        } else {
+            this.asthenosphereType = 'silicates';
+        }
+
+        this.asthenosphereSize = this.rand.randomInt(5, 12);
+        this.mantleInnerSize = this.rand.randomInt(30, 60);
+        this.mantleOuterSize = 100 - this.mantleInnerSize - this.asthenosphereSize;
+
+        ////
 
         this.planetType = 'selena';
 
-        const physicsRange = rand.randomFloat(1, 1000) / 1000;
+        const physicsRange = this.rand.randomFloat(1, 1000) / 1000;
 
         const ironPercent = 0;
         const waterPercent = 0;
 
-        const massRaw = utils.lerpRounded(0.015, 6, physicsRange, 2);
+        const massRaw = utils.lerpRounded(massRange[0], massRange[1], physicsRange, 2);
         this.mass = AbstractPlanet.modifyMass(massRaw, ironPercent, waterPercent);
 
-        const radiusRaw = utils.lerpRounded(22, 43, physicsRange, 2);
+        const radiusRaw = utils.lerpRounded(radiusRange[0], radiusRange[1], physicsRange, 2);
         this.radius = AbstractPlanet.modifyRadius(radiusRaw, ironPercent, waterPercent);
 
         const m = (this.mass / 100) * spaceUtils.earthProps.mass;
         const r = (this.radius / 100) * spaceUtils.earthProps.radius;
         this.gravityAcceleration = utils.numFixed((spaceUtils.G * m) / (r * r), 2);
         this.surfaceGravitation = utils.numFixed((this.gravityAcceleration / spaceUtils.earthProps.gravityAcceleration), 2);
+
+        this.calculateOrbitParams(starMass * solarMass);
     }
 }

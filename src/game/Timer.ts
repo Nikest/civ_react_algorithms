@@ -4,11 +4,13 @@ export class Timer {
     monthCounter = 0;
 
     timeDate: Date;
+    timeDateStart: Date;
     updateEveryMS: number;
     timeIntervalMs: number;
     constructor(year: number, month: number, day: number) {
         this.isStopped = true;
         this.timeDate = new Date(year, month, day);
+        this.timeDateStart = new Date(year, month, day);
         this.updateEveryMS = 10;
         this.timeIntervalMs = 60000 * 60;
 
@@ -18,6 +20,10 @@ export class Timer {
         window.addEventListener('timeStop', () => {
             this.stop();
         });
+    }
+
+    elapsedTimeInSeconds() {
+        return (this.timeDate.getTime() - this.timeDateStart.getTime()) / 1000;
     }
 
     timePlus() {

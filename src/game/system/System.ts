@@ -6,6 +6,7 @@ import { PlanetBuilder } from './PlanetBuilder';
 import { Star, TStarTemperatureZoneIndex } from './star/Star';
 import { AbstractPlanet } from './planets/AbstractPlanet';
 import { PlanetFactory } from './planets/PlanetFactory';
+import { solarMass } from './constants';
 
 // @ts-ignore
 import KtRGB from 'kelvin-to-rgb';
@@ -25,11 +26,28 @@ export class System {
         const planetFactory = new PlanetFactory(this.star.type);
 
         let currentOrbit = procedural.randomFloat(this.star.temperatureZones[0] / 10, this.star.temperatureZones[0]);
+        const starMass = this.star.mass * solarMass;
+        // for (let t = 0; t <=4; t++) {
+        //     for (let i = 0; i < 10; i++) {
+        //         const planet = planetFactory.create(i, t as TStarTemperatureZoneIndex, currentOrbit, starMass);
+        //
+        //         console.log(`
+        //         ====
+        //         ${t} ${planet.planetType}
+        //         Surf: ${planet.surfaceType}
+        //         Asth: ${planet.asthenosphereType}
+        //         Mantle: ${planet.mantleInnerType} ${planet.mantleOuterType}
+        //         Core: ${planet.coreType}
+        //         `);
+        //     }
+        // }
 
         for (let i = 0; i < this.star.planets; i++) {
-            const temperatureZone = this.star.temperatureZones.findIndex((z) => currentOrbit <= z) || 0;
+            let temperatureZone = this.star.temperatureZones.findIndex((z) => currentOrbit <= z) || 0;
+            if (temperatureZone < 0) temperatureZone = 4;
             const planetSeed = this.seed + procedural.randomInt(0, 1000);
-            const planet = planetFactory.create(planetSeed, temperatureZone as TStarTemperatureZoneIndex, currentOrbit);
+
+            const planet = planetFactory.create(planetSeed, temperatureZone as TStarTemperatureZoneIndex, currentOrbit, this.star.mass);
             this.planets.push(planet);
 
             currentOrbit *= procedural.randomFloat(1.25, 3.25);
