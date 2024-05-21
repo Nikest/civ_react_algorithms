@@ -82,12 +82,14 @@ export class Star extends SpaceBody {
     luminosity: number;
     temperatureZones: TStarTemperatureZones = [0, 0, 0, 0]; // in AU
 
-    constructor(seed: number) {
+    constructor(seed: number, shouldHabitable: boolean = false) {
         super(seed);
 
         this.className = 'star';
 
-        const type = calculateInFrequency<TStarType>(StarTypeFreq, this.rand.randomFloat(0, 100));
+        const excluded: TStarType[] = shouldHabitable ? ['M', 'B', 'A', 'O'] : [];
+
+        const type = calculateInFrequency<TStarType>(StarTypeFreq, this.rand.randomFloat(0, 100), excluded);
         this.type = type;
 
         const yerkesRawType = this.rand.randomFloat(0, 1000);

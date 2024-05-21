@@ -13,11 +13,15 @@ declare global {
 
 const systemSeed = Math.floor(Math.random() * 100000);
 // system seeds
-// 43144
-// 42124
-// 74232
+// 11800
+// 82767
+// 75490
+// 35052
+// 63613
+// 16379
+// 40222
 
-const civSeed = 7422156 // Math.floor(Math.random() * 100000);
+const civSeed = Math.floor(Math.random() * 100000);
 // civ seeds
 // 43144
 // 4004

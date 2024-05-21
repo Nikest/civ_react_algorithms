@@ -264,6 +264,12 @@ button {
   transition: 0.3s;
   margin: 3px 5px;
   font-weight: 600;
+
+  &[disabled] {
+    background: #ccc;
+    color: #666;
+    cursor: not-allowed;
+  }
 }
 button:hover {
   background: linear-gradient(45deg, rgba(94,119,186,1) 0%, rgba(148,233,221,1) 100%);
@@ -316,16 +322,7 @@ button:hover {
   }
 }
 
-.planet-view-panel {
-  height: 80vh;
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: auto 1fr;
-  align-items: stretch;
-  overflow: hidden;
-  position: relative;
-
-  .tile-info {
+.planet-tile-info {
     position: absolute;
     top: 90px;
     left: 0;
@@ -358,11 +355,26 @@ button:hover {
       transition: 150ms;
     }
   }
-}
+
 
 .planet-view-container {
   height: 100%;
   width: 100%;
+}
+
+.planet3D-view-panel {
+  height: calc(100vh - 80px);
+  position: relative;
+
+  .planet3D-view-container {
+    height: 100%;
+    width: 100%;
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+  }
 }
 
 .system3D-view-panel {
@@ -405,9 +417,21 @@ button:hover {
       .sun-compare {
         width: 75px;
         height: 75px;
-        background: rgba(0, 0, 0, 0.3);
         border-radius: 100%;
         position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        .sun {
+          background: rgba(0, 0, 0, 0.3);
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          border-radius: 100%;
+        }
       }
     }
 
@@ -420,6 +444,27 @@ button:hover {
       display: grid;
       align-items: center;
       justify-content: right;
+
+      .earth-compare {
+        width: 175px;
+        height: 175px;
+        display: flex;
+        background: transparent;
+        justify-content: center;
+        align-items: center;
+        border-radius: 100%;
+        position: relative;
+
+        .earth {
+          background: rgba(0, 0, 0, 0.3);
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          border-radius: 100%;
+        }
+      }
 
       .target-planet {
         transform: translateX(12px) translateY(12px);
@@ -452,13 +497,6 @@ button:hover {
         .planet-core {
           background: #ffecab;
         }
-      }
-
-      .earth-compare {
-        width: 175px;
-        height: 175px;
-        background: rgba(0, 0, 0, 0.3);
-        border-radius: 100%;
       }
     }
 

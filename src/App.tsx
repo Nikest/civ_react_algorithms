@@ -2,14 +2,13 @@ import React from 'react';
 import './App.css';
 
 import {
-    SystemPanel,
     System3DView,
     CivilizationPanel,
     PersonsPanel,
     ColonialFleet,
     TimerPanel,
     EventsPanel,
-    PlanetViewPanel,
+    Planet3DPanel,
 } from "./sections";
 
 function App() {
@@ -17,8 +16,7 @@ function App() {
     <div className="App">
         <TimerPanel />
         <System3DView />
-        {/*<SystemPanel />*/}
-        {/*<PlanetViewPanel />*/}
+        <Planet3DPanel />
         <CivilizationPanel />
         <PersonsPanel />
         <ColonialFleet />

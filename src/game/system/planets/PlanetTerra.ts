@@ -1,4 +1,3 @@
-import { Procedural } from '../../Procedural';
 import * as utils from '../../utils';
 import {
     AbstractPlanet,
@@ -9,13 +8,11 @@ import {
     TPlanetCoreType,
     TPlanetMantleType,
     TPlanetSurfaceType,
-    TPlanetSurfaceLiquidType,
 } from './planetTypes';
 import { solarMass } from '../constants';
-import {easeInExpoRounded, easeInOutSineRounded} from "../../utils";
 
-const massRange = [80, 180];
-const radiusRange = [90, 135];
+const massRange = [78, 180];
+const radiusRange = [85, 135];
 
 const coreTypesFreqByZone: Record<TPlanetCoreType, number>[] = [
     { // hot zone
@@ -125,7 +122,7 @@ const surfaceTypesFreqByZone: Record<TPlanetSurfaceType, number>[] = [
 ];
 
 export class PlanetTerra extends AbstractPlanet {
-    constructor({ seed, temperatureZone, orbitRadius, starMass }: IAbstractPlanetProps) {
+    constructor({ seed, temperatureZone, orbitRadius, starMass, shouldHabitable }: IAbstractPlanetProps) {
         super({
             seed,
             temperatureZone,
@@ -223,6 +220,8 @@ export class PlanetTerra extends AbstractPlanet {
 
         this.planetType = 'terra';
 
+        this.modifiers(!!shouldHabitable);
+
         const physicsRange = this.rand.randomFloat(1, 1000) / 1000;
 
         const ironPercent = 0;
@@ -231,7 +230,7 @@ export class PlanetTerra extends AbstractPlanet {
         const massRaw = utils.lerpRounded(massRange[0], massRange[1], physicsRange, 2);
         this.mass = AbstractPlanet.modifyMass(massRaw, ironPercent, waterPercent);
 
-        const radiusRaw = utils.easeOutQuadRounded(radiusRange[0], radiusRange[1], physicsRange, 2);
+        const radiusRaw = utils.lerpRounded(radiusRange[0], radiusRange[1], physicsRange, 2);
         this.radius = AbstractPlanet.modifyRadius(radiusRaw, ironPercent, waterPercent);
 
         const m = (this.mass / 100) * spaceUtils.earthProps.mass;

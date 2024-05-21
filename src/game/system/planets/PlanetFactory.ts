@@ -15,7 +15,7 @@ const planetsClassesMap: TPlanetsClassesMap = {
     selena: planets.PlanetSelena,
     miniterra: planets.PlanetMiniterra,
     terra: planets.PlanetTerra,
-    superterra: planets.PlanetMiniterra,
+    superterra: planets.PlanetSuperterra,
     neptunian: planets.PlanetMiniterra,
     jovian: planets.PlanetMiniterra,
 }
@@ -36,15 +36,19 @@ export class PlanetFactory {
         this.starType = starType;
     }
 
-    create(seed: number, temperatureZone: TStarTemperatureZoneIndex, orbitRadius: number, starMass: number) {
+    create(seed: number, temperatureZone: TStarTemperatureZoneIndex, orbitRadius: number, starMass: number, shouldHabitable: boolean = false) {
         const rand = new Procedural(seed);
-        const planetType: TPlanetType = utils.calculateInFrequency<TPlanetType>(this.planetTypeFreq, rand.randomFloat(0, 100));
+
+        const excluded: TPlanetType[] = temperatureZone === 1 && shouldHabitable ? ['neptunian', 'jovian', 'selena'] : [];
+
+        const planetType: TPlanetType = utils.calculateInFrequency<TPlanetType>(this.planetTypeFreq, rand.randomFloat(0, 100), excluded);
 
         return new planetsClassesMap[planetType]({
             seed: rand.randomInt(1, 100000000),
             temperatureZone,
             orbitRadius,
             starMass,
+            shouldHabitable: temperatureZone === 1 && shouldHabitable,
         });
     }
 }

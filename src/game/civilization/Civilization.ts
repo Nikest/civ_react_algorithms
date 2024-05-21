@@ -4,6 +4,7 @@ import { generateId } from '../utils';
 import { Person } from './Persone';
 import { Fleet } from './Fleet';
 import { City } from './city/City';
+import { Population } from './population';
 import { backgroundVariants, IBackground } from './Background';
 
 interface IEvent {
@@ -22,7 +23,7 @@ export class Civilization {
     background: IBackground = backgroundVariants[0];
     colonists: number = 0;
 
-    populations = [];
+    populations: Population[] = [];
     cities: City[] = [];
     cultures = [];
     orbitalStations = [];
@@ -46,7 +47,8 @@ export class Civilization {
 
         this.id = generateId();
 
-        this.populations = [];
+        const population = new Population(1000);
+        this.populations.push(population)
         this.cities = [];
         this.cultures = [];
         this.orbitalStations = [];
@@ -81,23 +83,22 @@ export class Civilization {
     }
 
     colonizePlanet(planetId: string) {
-        const planet = window.game.system.getPlanetById(planetId);
-
-        // planet?.getPlanetBuilder().then((planetBuilder) => {
-        //     const bestLocation = planetBuilder.getBestCityLocation();
-        //
-        //     const city = new City({
-        //         seed: this.procedural.randomInt(0, 100000),
-        //         planetId: planetId,
-        //         planetName: planet.name,
-        //         centerPlanetTileIndex: bestLocation.planetTile.index,
-        //     });
-        //
-        //     this.cities.push(city);
-        // });
-
-        window.game.system.colonize(planetId);
         this.colonizedPlanetsIds.push(planetId);
+        const planet = window.game.system.getPlanetById(planetId);
+        planet?.getTiles().setActionOnClick((tile) => {
+            const city = new City({
+                seed: this.procedural.randomInt(0, 100000),
+                planetId: planetId,
+                planetName: planet.name || '',
+                centerPlanetTileIndex: tile.index,
+            });
+            this.cities.push(city);
+            tile.isColonized = true;
+            tile.cityId = city.id;
+            tile.citiDistrictId = city.districts[0].id;
+            tile.color = city.districts[0].color;
+            planet.colonize();
+        });
     }
 
     getCityById(id: string) {

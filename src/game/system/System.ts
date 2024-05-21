@@ -1,7 +1,7 @@
 import { Procedural } from '../Procedural';
 import { generatePlanetName } from '../wordGenerator';
-import { generateId, lerp } from '../utils';
-import { PlanetBuilder } from './PlanetBuilder';
+import { generateId, lerp, createHash } from '../utils';
+import { PlanetTiles } from './PlanetTiles';
 
 import { Star, TStarTemperatureZoneIndex } from './star/Star';
 import { AbstractPlanet } from './planets/AbstractPlanet';
@@ -16,53 +16,71 @@ export class System {
     star: Star;
     planets: AbstractPlanet[] = [];
 
+    systemUpdateHash = createHash();
+
     selectedPlanetId = '';
-    constructor(seed: number) {
+    constructor(seed: number, shouldHabitable: boolean = false) {
         const procedural = new Procedural(seed);
         this.seed = seed;
 
-        this.star = new Star(this.seed + procedural.randomInt(1, 1000));
+        this.star = new Star(this.seed + procedural.randomInt(1, 1000), shouldHabitable);
 
         const planetFactory = new PlanetFactory(this.star.type);
 
         let currentOrbit = procedural.randomFloat(this.star.temperatureZones[0] / 10, this.star.temperatureZones[0]);
-        const starMass = this.star.mass * solarMass;
-        // for (let t = 0; t <=4; t++) {
-        //     for (let i = 0; i < 10; i++) {
-        //         const planet = planetFactory.create(i, t as TStarTemperatureZoneIndex, currentOrbit, starMass);
-        //
-        //         console.log(`
-        //         ====
-        //         ${t} ${planet.planetType}
-        //         Surf: ${planet.surfaceType}
-        //         Asth: ${planet.asthenosphereType}
-        //         Mantle: ${planet.mantleInnerType} ${planet.mantleOuterType}
-        //         Core: ${planet.coreType}
-        //         `);
-        //     }
-        // }
 
-        for (let i = 0; i < this.star.planets; i++) {
-            let temperatureZone = this.star.temperatureZones.findIndex((z) => currentOrbit <= z) || 0;
-            if (temperatureZone < 0) temperatureZone = 4;
-            const planetSeed = this.seed + procedural.randomInt(0, 1000);
+        if (shouldHabitable) {
+            let habitablePlanets = 1;
+            const habitableZone = [this.star.temperatureZones[0], this.star.temperatureZones[1]];
+            if (this.star.type === 'G') habitablePlanets = 2;
+            if (this.star.type === 'F') habitablePlanets = 3;
 
-            const planet = planetFactory.create(planetSeed, temperatureZone as TStarTemperatureZoneIndex, currentOrbit, this.star.mass);
-            this.planets.push(planet);
+            const habitableOrbitsAU = [currentOrbit];
+            const temperatureZonesOrbit: TStarTemperatureZoneIndex[] = [0];
 
-            currentOrbit *= procedural.randomFloat(1.25, 3.25);
+            for (let i = 0; i < habitablePlanets; i++) {
+                habitableOrbitsAU.push(lerp(habitableZone[0], habitableZone[1], (i + 1) / (habitablePlanets + 1)));
+                temperatureZonesOrbit.push(1);
+            }
+
+            habitableOrbitsAU[1] -= habitableOrbitsAU[1] * procedural.randomFloat(0.03, 0.2);
+            habitableOrbitsAU[habitableOrbitsAU.length - 1] += habitableOrbitsAU[1] * procedural.randomFloat(0.03, 0.2);
+
+            currentOrbit = habitableOrbitsAU[habitableOrbitsAU.length - 1];
+
+            for (let i = 0; i < 2; i++) {
+                currentOrbit *= procedural.randomFloat(1.25, 3.25);
+                let temperatureZone = this.star.temperatureZones.findIndex((z) => currentOrbit <= z) || 0;
+                if (temperatureZone < 0) temperatureZone = 4;
+                temperatureZonesOrbit.push(temperatureZone as TStarTemperatureZoneIndex);
+                habitableOrbitsAU.push(currentOrbit);
+            }
+
+            for (let o = 0; o < habitableOrbitsAU.length; o++) {
+                const planetSeed = this.seed + procedural.randomInt(0, 1000);
+                const planet = planetFactory.create(planetSeed, temperatureZonesOrbit[o], habitableOrbitsAU[o], this.star.mass, temperatureZonesOrbit[o] === 1);
+                this.planets.push(planet);
+            }
+        } else {
+
+            for (let i = 0; i < this.star.planets; i++) {
+                let temperatureZone = this.star.temperatureZones.findIndex((z) => currentOrbit <= z) || 0;
+                if (temperatureZone < 0) temperatureZone = 4;
+                const planetSeed = this.seed + procedural.randomInt(0, 1000);
+
+                const planet = planetFactory.create(planetSeed, temperatureZone as TStarTemperatureZoneIndex, currentOrbit, this.star.mass, false);
+                this.planets.push(planet);
+
+                currentOrbit *= procedural.randomFloat(1.25, 3.25);
+            }
         }
     }
 
     colonize(planetId: string) {
+        window.game.civilization.colonizePlanet(planetId);
         const planet = this.getPlanetById(planetId);
-        if (!planet) {
-            return;
-        }
-        //planet.colonized = true;
-
-        window.dispatchEvent(new CustomEvent('ui:systemUpdate'));
-        window.dispatchEvent(new CustomEvent('ui:planetUpdate'));
+        planet?.waitForColonization();
+        this.systemUpdated();
     }
 
     getPlanetById(id: string) {
@@ -82,11 +100,12 @@ export class System {
             return;
         }
         this.selectedPlanetId = id;
-        //window.dispatchEvent(new CustomEvent('ui:planetUpdate'));
+        window.dispatchEvent(new CustomEvent('ui:planetSelected'));
     }
 
-    getSelectedPlanet() {
-        return this.getPlanetById(this.selectedPlanetId);
+    systemUpdated() {
+        this.systemUpdateHash = createHash();
+        window.dispatchEvent(new CustomEvent('ui:systemUpdate'));
     }
 }
 
@@ -102,7 +121,7 @@ export class Planet {
     temperatureType = '';
     colonized = false;
     perspectiveRate = 0;
-    planetBuilder: PlanetBuilder | null = null;
+    planetBuilder: PlanetTiles | null = null;
     orbitRadius: number = 0;
     cities: IPlanetCity[] = [];
 
@@ -196,7 +215,7 @@ export class Planet {
                     size = 10;
             }
 
-            this.planetBuilder = new PlanetBuilder(this.seed, size);
+            this.planetBuilder = new PlanetTiles(this.seed, size);
         }
         return this.planetBuilder;
     }

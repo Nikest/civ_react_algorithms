@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { Box, Title, Info } from '../components';
+import { Box, Title, Info } from '../../components';
 
 import { StarInfoView } from './StarInfoView';
 import { PlanetInfoView } from './PlanetInfoView';
@@ -26,15 +26,20 @@ function importAll(r: any) {
     return images;
 }
 
-// @ts-ignore
-const planetTextures = importAll(require.context('../assets/planets', false, /\.png$/));
 
 let inited = false;
 
 export const System3DView = () => {
+    const [renderId, setRenderId] = useState('');
     const [show, setShow] = useState<any>({ type: 'star', id: '' });
     const containerRef = useRef<HTMLDivElement>(null);
     const starInfo = window.game.system.star;
+
+    useEffect(() => {
+        window.addEventListener('ui:systemUpdate', () => {
+            setRenderId(window.game.system.systemUpdateHash);
+        });
+    }, []);
 
     useEffect(() => {
         if (containerRef.current) {
@@ -48,7 +53,6 @@ export const System3DView = () => {
             raycaster = new THREE.Raycaster();
             mouse = new THREE.Vector2();
 
-            console.log(window.game.system.planets);
             const width = containerRef.current.clientWidth * 2;
             const height = containerRef.current.clientHeight * 2;
 

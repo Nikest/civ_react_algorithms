@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import * as THREE from 'three';
-import { PlanetBuilder } from '../game/system/PlanetBuilder';
+import { PlanetTiles } from '../game/system/PlanetTiles';
 import { Title, Box, Grid } from '../components';
 import { PlanetViewInfo } from './PlanetViewInfo';
-import { PlanetTileInfo } from './PlanetTileInfo';
+import { PlanetTileInfo } from './Planet3D/PlanetTileInfo';
 import { Procedural } from '../game/Procedural';
 
 

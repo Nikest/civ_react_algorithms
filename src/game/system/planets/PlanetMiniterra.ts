@@ -1,4 +1,3 @@
-import { Procedural } from '../../Procedural';
 import * as utils from '../../utils';
 import {
     AbstractPlanet,
@@ -14,8 +13,8 @@ import {
 import { solarMass } from '../constants';
 import {easeInExpoRounded, easeInOutSineRounded} from "../../utils";
 
-const massRange = [6, 80];
-const radiusRange = [43, 90];
+const massRange = [6, 78];
+const radiusRange = [43, 85];
 
 const coreTypesFreqByZone: Record<TPlanetCoreType, number>[] = [
     { // hot zone
@@ -125,7 +124,7 @@ const surfaceTypesFreqByZone: Record<TPlanetSurfaceType, number>[] = [
 ];
 
 export class PlanetMiniterra extends AbstractPlanet {
-    constructor({ seed, temperatureZone, orbitRadius, starMass }: IAbstractPlanetProps) {
+    constructor({ seed, temperatureZone, orbitRadius, starMass, shouldHabitable }: IAbstractPlanetProps) {
         super({
             seed,
             temperatureZone,
@@ -219,7 +218,11 @@ export class PlanetMiniterra extends AbstractPlanet {
 
         ////
 
+        //// MODIFIERS
+
         this.planetType = 'miniterra';
+
+        this.modifiers(!!shouldHabitable);
 
         const physicsRange = this.rand.randomFloat(1, 1000) / 1000;
 

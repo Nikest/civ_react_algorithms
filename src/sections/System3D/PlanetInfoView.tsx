@@ -1,6 +1,6 @@
 import React from 'react';
-import { Info } from '../components';
-import { capitalizeFirstLetter } from '../game/utils';
+import { Info } from '../../components';
+import { capitalizeFirstLetter } from '../../game/utils';
 
 export const PlanetInfoView = ({ id }: { id: string }) => {
     const planetInfo = window.game.system.getPlanetById(id);
@@ -15,7 +15,7 @@ export const PlanetInfoView = ({ id }: { id: string }) => {
         value: planetInfo.planetType
     },{
         key: 'Orbit',
-        value: `${planetInfo.orbitRadius.toFixed(2)} AU`
+        value: `${planetInfo.orbitRadius.toFixed(2)} AU (${planetInfo.orbitalPeriod} days)`
     },{
         key: 'Mass',
         value: (planetInfo.mass / 100).toFixed(2)
@@ -47,22 +47,52 @@ export const PlanetInfoView = ({ id }: { id: string }) => {
         value: planetInfo.atmospherePressure > 0 ? planetInfo.atmospherePressure + ' atm' : 'none'
     }];
 
-    const viewSize = planetInfo.radius >= 1 ? 1 / planetInfo.radius : (1 + (1 - planetInfo.radius));
+    const viewSize = 1 / (planetInfo.radius / 100);
 
     const mantleSizePx = (175 * ((planetInfo.mantleSize / 100) + (planetInfo.coreSize / 100))) + 'px';
     const coreSizePx = (175 * (planetInfo.coreSize / 100)) + 'px';
+
+    const isColonizable =
+        planetInfo.temperatureZone === 1 &&
+        planetInfo.planetType !== 'selena' &&
+        planetInfo.atmospherePressure > 0.75 &&
+        planetInfo.atmospherePressure < 1.75 &&
+        planetInfo.surfaceLiquidSize > 1 &&
+        planetInfo.surfaceLiquidSize < 2;
+
+    const onPlanetColonize = () => {
+        window.game.system.colonize(id);
+    }
+
+    const onShowPlanet = () => {
+        window.game.system.selectPlanet(id);
+    }
+
+    const hidePlanet = () => {
+        window.game.system.selectPlanet('');
+    }
 
     return (
         <div className={'info planet'}>
             <div className={'graphic-planet'}>
                 <div className={'target-planet'} style={{backgroundColor: '#fff'}}>
-                    <div className={'planet-composition planet-surface'} style={{ width: '100%', height: '100%' }}>
-                        <div className={'planet-composition planet-mantle'} style={{ width: mantleSizePx, height: mantleSizePx }}>
-                            <div className={'planet-composition planet-core'}  style={{ width: coreSizePx, height: coreSizePx }} />
+                    <div className={'planet-composition planet-surface'} style={{width: '100%', height: '100%'}}>
+                        <div className={'planet-composition planet-mantle'}
+                             style={{width: mantleSizePx, height: mantleSizePx}}>
+                            <div className={'planet-composition planet-core'}
+                                 style={{width: coreSizePx, height: coreSizePx}}/>
                         </div>
                     </div>
                 </div>
+                <div className={'earth-compare'}>
+                    <div className={'earth'} style={{transform: `scale(${viewSize})`}}/>
+                </div>
             </div>
+            {(isColonizable && !planetInfo.waitingForColonization) ?
+                <button onClick={onPlanetColonize}>Колонизировать</button> :
+                <button disabled={true}>Нельзя колонизировать</button>}
+            {planetInfo.waitingForColonization && <button onClick={onShowPlanet}>Показать</button>}
+            <button onClick={hidePlanet}>Скрыть</button>
             <Info data={planetViewData}/>
         </div>
     );

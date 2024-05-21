@@ -9,10 +9,21 @@ enum DistrictType {
     MINING = 'mining',
     SCIENCE = 'science',
     LIVING = 'living',
-    INDUSTRY = 'industry',
+    INDUSTRY = 'industrial',
     FARMING = 'farming',
     MEDICAL = 'medical',
     RELIGIOUS = 'religious',
+}
+
+enum DistrictTypeColor {
+    center = 'rgb(192,192,192)',
+    mining = 'rgb(189,180,180)',
+    science = 'rgb(209,221,239)',
+    living = 'rgb(205,201,213)',
+    industry = 'rgb(223,200,200)',
+    farming = 'rgb(197,225,196)',
+    medical = 'rgb(219,255,238)',
+    religious = 'rgb(220,212,189)',
 }
 
 interface ICityProps {
@@ -32,6 +43,7 @@ export class City {
     centerPlanetTileIndex = 0;
 
     districts: District[] = [];
+    isMaximalGrowing = false;
 
     // modifiers
     public lifeQuality = 1;
@@ -74,6 +86,45 @@ export class City {
     getDistrictById(id: string) {
         return this.districts.find(d => d.id === id);
     }
+
+    newDistrict() {
+        if (this.isMaximalGrowing) return;
+        const randomDistrictType = this.procedural.randomFromArray(Object.values(DistrictType));
+        const planetFreeTiles: number[] = [];
+
+        const planetTiles = window.game.system.getPlanetById(this.planetId)?.getTiles();
+
+        if (!planetTiles) return;
+
+        this.districts.forEach(district => {
+            planetTiles.hexaSphere.tiles[district.planetTileIndex].neighbors.forEach(neighbor => {
+                if (neighbor.planetTile.cityId === '' && neighbor.planetTile.type === 'land' && !neighbor.planetTile.isPolarCircle) {
+                    planetFreeTiles.push(neighbor.planetTile.index);
+                }
+
+            });
+        });
+
+        if (planetFreeTiles.length === 0) {
+            this.isMaximalGrowing = true;
+            return;
+        }
+
+        const randomTileIndex = this.procedural.randomFromArray(planetFreeTiles);
+
+        const newDistrict = new District({
+            id: generateId(),
+            cityId: this.id,
+            type: randomDistrictType,
+            planetTileIndex: randomTileIndex,
+            // @ts-ignore
+            color: DistrictTypeColor[randomDistrictType],
+        });
+
+        planetTiles.colonizeTile(randomTileIndex, this.id, newDistrict.id, newDistrict.color);
+
+        this.districts.push(newDistrict);
+    }
 }
 
 interface IDistrict {
@@ -86,12 +137,15 @@ class District implements IDistrict {
     id = '';
     cityId = '';
     type;
+    color: DistrictTypeColor;
     planetTileIndex = 0;
 
     constructor({id, cityId, type, planetTileIndex}: IDistrict) {
         this.id = id;
         this.cityId = cityId;
         this.type = type;
+        // @ts-ignore
+        this.color = DistrictTypeColor[type as DistrictTypeColor];
         this.planetTileIndex = planetTileIndex;
     }
 }

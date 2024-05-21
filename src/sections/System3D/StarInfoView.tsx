@@ -1,6 +1,6 @@
 import React from 'react';
-import { Info } from '../components';
-import { capitalizeFirstLetter } from '../game/utils';
+import { Info } from '../../components';
+import { capitalizeFirstLetter } from '../../game/utils';
 
 export const StarInfoView = () => {
     const starInfo = window.game.system.star;
@@ -30,16 +30,14 @@ export const StarInfoView = () => {
         key: 'Planets',
         value: starInfo.planets
     }];
-
-    const viewSize = 75 * (starInfo.radius >= 1 ? 1 / starInfo.radius : (1 + (1 - starInfo.radius)));
-    const topShift = (100 - viewSize) / 2;
-    console.log(topShift);
+    console.log('starInfo.radius', starInfo.radius)
+    const viewSize = 1 / starInfo.radius;
 
     return (
         <div className={'info'}>
             <div className={'graphic-star'}>
                 <div className={'target-star'} style={{backgroundColor: starInfo.colorRGB}}/>
-                <div className={'sun-compare'} style={{top: topShift + 'px',width: `${viewSize}px`, height: `${viewSize}px`}}/>
+                <div className={'sun-compare'}> <div className={'sun'} style={{ transform: `scale(${viewSize})` }} /> </div>
             </div>
             <Info data={starViewData}/>
         </div>

@@ -75,6 +75,8 @@ export function easeInExpoRounded(a: number, b: number, t: number, digitsLength:
     return parseFloat(easeInExpo(a, b, t).toFixed(digitsLength));
 }
 
+export const createHash = (): string => Math.random().toString(36).substring(7);
+
 export type IFrequency<T extends string> = Record<T, number>;
 export type IFrequencyEx<T extends string> = Record<T, boolean>;
 

@@ -1,11 +1,13 @@
 // @ts-ignore
 import * as Hexasphere from 'hexasphere.js';
+//import * as Hexatest from './Hexatest.mjs';
 // @ts-ignore
 import FastNoiseLite from "fastnoise-lite";
 import { Procedural } from '../Procedural';
 import { generatePlanetName } from '../wordGenerator';
+import * as utils from '../utils';
 
-interface IPlanetTile {
+export interface IPlanetTile {
     index: number;
     type: 'liquid' | 'land';
     landGroup: number;
@@ -20,9 +22,10 @@ interface IPlanetTile {
     cityId: string;
     citiDistrictId: string;
     isPolarCircle: boolean;
+    color: string;
 }
 
-interface ITile {
+export interface ITile {
     visited: boolean;
     boundary: {
         x: number;
@@ -36,6 +39,7 @@ interface ITile {
     };
     neighbors: ITile[];
     planetTile: IPlanetTile;
+    onClick: () => void;
 }
 
 interface IHexaSphere {
@@ -102,16 +106,22 @@ function generateRareResourcesNoise(seed: number) {
     return noise;
 }
 
-export class PlanetBuilder {
+export class PlanetTiles {
     seed: number;
     public hexaSphere: IHexaSphere;
     public procedural: Procedural;
     public lands: ILand[] = [];
 
-    constructor(seed: number, size: number) {
+    public isLiquidExists = false;
+    public isLandExists = false;
+
+    constructor(seed: number, size: number, surfaceLiquidLevel: number = 1) {
+        const tileSize = Math.round(15 * (size / 100));
+        const seaLevel = utils.lerp(0.1, 1.4, surfaceLiquidLevel - 1);
+
         this.seed = seed;
         this.procedural = new Procedural(seed);
-        this.hexaSphere = new Hexasphere(30, size, 0.98);
+        this.hexaSphere = new Hexasphere(30, tileSize, 0.98);
 
         const noiseForType = generateTypeNoise(seed);
 
@@ -126,17 +136,23 @@ export class PlanetBuilder {
         const maxY = this.hexaSphere.tiles.reduce((max, tile) => Math.max(max, tile.centerPoint.y), 0);
 
         this.hexaSphere.tiles.forEach((tile: any, index) => {
-            const noiseTypeValue = noiseForType.GetNoise(5 + tile.centerPoint.x, 5 + tile.centerPoint.y, 5 + tile.centerPoint.z);
+            const noiseTypeValue = noiseForType.GetNoise(5 + tile.centerPoint.x, 5 + tile.centerPoint.y, 5 + tile.centerPoint.z) + 0.5;
 
-            const type = noiseTypeValue > 0.1 ? 'land' : 'liquid';
-
+            const type = noiseTypeValue > seaLevel ? 'land' : 'liquid';
+            if (type === 'land') {
+                this.isLandExists = true;
+            } else {
+                this.isLiquidExists = true;
+            }
+            const isPolarCircle = Math.abs(tile.centerPoint.y) > maxY * 0.85;
             const planetTile: IPlanetTile = {
+                color: isPolarCircle ? 'rgb(255,255,255)' : type === 'land' ? 'rgb(182,143,78)' : 'rgb(32,46,72)',
                 isExplored: false,
                 isColonized: false,
                 cityId: '',
                 citiDistrictId: '',
                 landGroup: 0,
-                isPolarCircle: Math.abs(tile.centerPoint.y) > maxY * 0.85,
+                isPolarCircle,
                 index,
                 type,
                 iron: type === 'land' ? Math.max(noiseForIron.GetNoise(5 + tile.centerPoint.x, 5 + tile.centerPoint.y, 5 + tile.centerPoint.z), 0) : 0,
@@ -146,6 +162,10 @@ export class PlanetBuilder {
                 titanium: type === 'land' ? Math.max(noiseForTitanium.GetNoise(5 + tile.centerPoint.x, 5 + tile.centerPoint.y, 5 + tile.centerPoint.z), 0) : 0,
                 uranium: type === 'land' ? Math.max(noiseForUranium.GetNoise(5 + tile.centerPoint.x, 5 + tile.centerPoint.y, 5 + tile.centerPoint.z), 0) : 0,
             }
+
+            tile.onClick = () => {
+                this.onTileClick(planetTile);
+            };
 
             tile.planetTile = planetTile;
         });
@@ -157,6 +177,8 @@ export class PlanetBuilder {
         this.procedural = new Procedural(this.seed + 10);
         this.lands = [];
         let currentLandGroup = 0;
+
+        if (!this.isLandExists || !this.isLiquidExists) return;
 
         this.hexaSphere.tiles.forEach(tile => {
             tile.visited = false;
@@ -215,5 +237,25 @@ export class PlanetBuilder {
         const landTiles = this.hexaSphere.tiles.filter(t => land.indexes.includes(t.planetTile.index) && !t.planetTile.isPolarCircle);
         const boundaryTiles = landTiles.filter(t => t.neighbors.some(n => n.planetTile.type === 'liquid'));
         return this.procedural.randomFromArray(boundaryTiles);
+    }
+
+    onClickAction: ((tile: IPlanetTile) => void) | null = null;
+    setActionOnClick(action: (tile: IPlanetTile) => void) {
+        this.onClickAction = action;
+    }
+    onTileClick(tile: IPlanetTile) {
+        if (tile.type === 'land') {
+            this.onClickAction?.(tile);
+            this.onClickAction = null;
+        }
+    }
+
+    colonizeTile(index: number, cityId: string, districtId: string, color: string) {
+        this.hexaSphere.tiles[index].planetTile.isColonized = true;
+        this.hexaSphere.tiles[index].planetTile.cityId = cityId;
+        this.hexaSphere.tiles[index].planetTile.citiDistrictId = districtId;
+        this.hexaSphere.tiles[index].planetTile.color = color;
+
+        window.game.system.systemUpdated();
     }
 }
