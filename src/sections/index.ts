@@ -6,3 +6,7 @@ export * from './EventsPanel';
 export * from './PlanetViewPanel';
 export * from './System3D';
 export * from './Planet3D';
+export * from './PopulationsPanel';
+export * from './ColonyPanel';
+export * from './TechnologyPanel';
+export * from './InfoPopup';

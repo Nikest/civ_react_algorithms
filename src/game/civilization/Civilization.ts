@@ -1,11 +1,14 @@
 import { Procedural } from '../Procedural';
 import { generateId } from '../utils';
 
+import { TechTree } from './technologies';
 import { Person } from './Persone';
 import { Fleet } from './Fleet';
-import { City } from './city/City';
-import { Population } from './population';
+import { Colony } from './colony/Colony';
+import { Population, SubPopulation } from './population';
 import { backgroundVariants, IBackground } from './Background';
+
+import { InfoPopupInterface, capitalizeFirstLetter } from '../utils';
 
 interface IEvent {
     time: number;
@@ -23,11 +26,28 @@ export class Civilization {
     background: IBackground = backgroundVariants[0];
     colonists: number = 0;
 
-    populations: Population[] = [];
-    cities: City[] = [];
-    cultures = [];
-    orbitalStations = [];
-    colonizedPlanetsIds: string[] = [];
+    technologies: TechTree;
+
+    populations: Map<string, Population> = new Map();
+    addPopulation(population: Population) {
+        this.populations.set(population.id, population);
+    }
+
+    subPopulations: Map<string, SubPopulation> = new Map();
+    addSubPopulation(subPopulation: SubPopulation) {
+        this.subPopulations.set(subPopulation.id, subPopulation);
+    }
+
+    colonies: Map<string, Colony> = new Map();
+    addCity(city: Colony) {
+        this.colonies.set(city.id, city);
+    }
+
+    cultures: Map<string, any> = new Map();
+    orbitalStations: Map<string, any> = new Map();
+
+    colonizedPlanetsIds: Set<string> = new Set();
+
     persons: Person[] = [];
     getPersonById(id: string) {
         return this.persons.find((person) => person.id === id);
@@ -44,14 +64,13 @@ export class Civilization {
         this.procedural = new Procedural(seed);
 
         this.background = this.procedural.randomFromArray(backgroundVariants);
+        this.technologies = new TechTree();
 
         this.id = generateId();
 
-        const population = new Population(1000);
-        this.populations.push(population)
-        this.cities = [];
-        this.cultures = [];
-        this.orbitalStations = [];
+        this.colonies = new Map();
+        this.cultures = new Map();
+        this.orbitalStations = new Map();
         this.persons = [];
     }
 
@@ -83,25 +102,54 @@ export class Civilization {
     }
 
     colonizePlanet(planetId: string) {
-        this.colonizedPlanetsIds.push(planetId);
+        this.colonizedPlanetsIds.add(planetId);
+
         const planet = window.game.system.getPlanetById(planetId);
+
         planet?.getTiles().setActionOnClick((tile) => {
-            const city = new City({
-                seed: this.procedural.randomInt(0, 100000),
-                planetId: planetId,
-                planetName: planet.name || '',
-                centerPlanetTileIndex: tile.index,
+            InfoPopupInterface({
+                title: 'Колонизация',
+                message: `Колонизировать тайл ${tile.index}?`,
+                actions: [
+                    {
+                        text: 'Колонизировать',
+                        function: () => {
+                            const population = new Population(1234, 0, 5000, 0);
+                            const firstSubPopulation = population.subPopulationsIds.values().next().value;
+                            this.addPopulation(population);
+
+                            const colony = new Colony({
+                                seed: this.procedural.randomInt(0, 100000),
+                                planetId: planetId,
+                                planetName: planet.name || '',
+                                centerPlanetTileIndex: tile.index,
+                            });
+                            colony.setSubPopulationId(firstSubPopulation);
+                            this.addCity(colony);
+
+                            tile.isColonized = true;
+                            tile.colonyId = colony.id;
+                            tile.color = colony.districtOutpost.color;
+                            planet.colonize();
+                            colony.init();
+                            const landGroup = planet.planetTiles?.getLandGroup(tile.landGroup);
+
+                            InfoPopupInterface({
+                                title: `Основана колония ${capitalizeFirstLetter(colony.name)} на планете ${capitalizeFirstLetter(planet.name)}`,
+                                message: `Из орбитальной станции на орбите планеты ${capitalizeFirstLetter(planet.name)} были спущены первые модули для постройки аванпоста колонии на континенте ${capitalizeFirstLetter(landGroup?.name || '')}`,
+                            });
+                        }
+                    },
+                    {
+                        text: 'Отмена',
+                        function: () => { this.colonizePlanet(planetId) }
+                    }
+                ],
             });
-            this.cities.push(city);
-            tile.isColonized = true;
-            tile.cityId = city.id;
-            tile.citiDistrictId = city.districts[0].id;
-            tile.color = city.districts[0].color;
-            planet.colonize();
         });
     }
 
-    getCityById(id: string) {
-        return this.cities.find((city) => city.id === id);
+    getColonyById(id: string) {
+        return this.colonies.get(id);
     }
 }

@@ -1,91 +1,65 @@
 import { Procedural } from '../../Procedural';
 import { Timer } from '../../Timer';
 import * as utils from '../../utils';
+import { SubPopulation } from './SubPopulation';
+
+export interface ICurrentState {
+    children: number;
+    adults: number;
+    elders: number;
+    totalPopulation: number;
+}
 
 export class Population {
     seed: number;
     rand: Procedural;
+    id: string;
 
-    public beginDate: number;
+    subPopulationsIds: Set<string> = new Set();
 
-    public childrenBeginTerm = 0;
-    public adultsBeginTerm = 0;
-    public eldersBeginTerm = 0;
-    public totalPopulation = 0;
+    lastCurrentState: ICurrentState = {
+        children: 0,
+        adults: 0,
+        elders: 0,
+        totalPopulation: 0,
+    }
 
-    public afterDate: number;
-    public childrenAfterTerm = 0;
-    public adultsAfterTerm = 0;
-    public eldersAfterTerm = 0;
-
-    public maxLifeSpan = 70;
-    public maxChildhood = 18;
-    public maxFertilityPeriod = 30;
-    public maxElderhood = 22;
-    public fertilityRate = 2.5;
-
-    constructor(seed: number) {
+    constructor(seed: number, startedChildren: number, startedAdults: number, startedElders: number) {
         this.seed = seed;
         this.rand = new Procedural(seed);
+        this.id = utils.generateId();
 
-        this.beginDate = Timer.now();
-        this.afterDate = Timer.now() + (100 * Timer.durationInMs().year);
+        const newSubPopulation = new SubPopulation(this.id, startedChildren, startedAdults, startedElders);
 
-        this.childrenBeginTerm = 0;
-        this.adultsBeginTerm = 1000;
-        this.eldersBeginTerm = 0;
+        this.subPopulationsIds.add(newSubPopulation.id);
 
-        this.totalPopulation = this.childrenBeginTerm + this.adultsBeginTerm + this.eldersBeginTerm;
+        window.game.civilization.addSubPopulation(newSubPopulation);
     }
 
-    public getCurrentState() {
-        // how many times from beginDate to afterDate in 0 to 1?
-        const start = this.beginDate;
-        const end = this.afterDate;
-        const current = Timer.now();
+    getLastCurrentState(): ICurrentState {
+        const subPopulationsState = Array.from(this.subPopulationsIds).reduce((acc, subPopulationId) => {
+            const subPopulation = window.game.civilization.subPopulations.get(subPopulationId);
+            if (!subPopulation) {
+                return acc;
+            }
 
-        const normalizedTime = (current - start) / (end - start);
+            const { children, adults, elders } = subPopulation.getLastCalculatedState();
 
-        const currentChildrenLerp = utils.lerp(this.childrenBeginTerm, this.childrenAfterTerm, normalizedTime);
-        const currentAdultsLerp = utils.lerp(this.adultsBeginTerm, this.adultsAfterTerm, normalizedTime);
-        const currentEldersLerp = utils.lerp(this.eldersBeginTerm, this.eldersAfterTerm, normalizedTime);
+            acc.children += children;
+            acc.adults += adults;
+            acc.elders += elders;
+            acc.totalPopulation += children + adults + elders;
 
-        const totalPopulation = currentChildrenLerp + currentAdultsLerp + currentEldersLerp;
+            return acc;
+        }, {
+            children: 0,
+            adults: 0,
+            elders: 0,
+            totalPopulation: 0,
+        });
 
-        return {
-            children: currentChildrenLerp,
-            adults: currentAdultsLerp,
-            elders: currentEldersLerp,
-            totalPopulation,
-        }
-    }
+        this.lastCurrentState = subPopulationsState;
 
-    public calculateForHundredYears() {
-        const children = this.
-    }
-
-    public growAfterYear() {
-        // Дети становятся взрослыми (1/18 часть детей)
-        const newAdults = Math.floor(this.children / this.maxChildhood);
-        this.children -= newAdults;
-
-        // Рождаемость (учитываем только женщин)
-        const women = this.adults / 2;
-        const newChildren = Math.floor(women * (this.fertilityRate / this.maxFertilityPeriod));
-
-        // Взрослые становятся стариками (1/30 часть взрослых)
-        const newElders = Math.floor(this.adults / this.maxFertilityPeriod);
-        this.adults -= newElders;
-
-        // Смертность среди стариков (1/22 часть стариков)
-        const deaths = Math.floor(this.elders / 22);
-
-        // Обновляем значения
-        this.elders = Math.max(0, this.elders + newElders - deaths);
-        this.adults += newAdults;
-        this.children += newChildren;
-
-        // Пересчитываем общее население
-        this.totalPopulation = this.children + this.adults + this.elders;
+        return subPopulationsState;
     }
 }

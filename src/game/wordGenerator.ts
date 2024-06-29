@@ -2,44 +2,26 @@ import { Procedural } from './Procedural';
 
 const procedural = new Procedural(123);
 
-const consonants = 'ббббввввггггдддджзззззйккккллллммммннннппппррррссссттттббббввввггггдддджзззззйккккллллммммннннппппррррссссттттффххххцчш'.split('');
-const vowels = 'ааооааооуиииеее'.split('');
+let consonants = 'ббббввввггггдддджзззззйккккллллммммннннппппррррссссттттббббввввггггдддджзззззйккккллллммммннннппппррррссссттттффххххцчш'.split('');
+consonants = [
+    ...consonants,
+    ...['бв','вг','вн','гд','дж','дз','зв','вз','кр','кв','лн','мн','пр','пс','ст','тс','зт','зм','зн','нз','мз','кх','дх','пх','мх','мр','бх',].flatMap((c) => Array(2).fill(c)),
+    ...['бьй','вьй','дьй','ньй','ньй','кьй','хьй',]
+]
+let vowels = 'ааооааооуиииеееааооааооуиииеееааооааооуиииеееааооааооуиииеееааооааооуиииеееааооааооуиииеееааооааооуиииеееааооааооуиииеее'.split('');
+vowels = [...vowels, ...['ао','ау','оа','оу','иу',]]
 
 function generatePattern(minLength: number) {
     let pattern = [procedural.randomInt(0, 1)];
 
     for (let i = 1; i < minLength; i++) {
         let last = pattern[i - 1];
-        let prevLast = pattern[i - 2];
 
-        if (last === prevLast) {
-            pattern.push(last === 0 ? 1 : 0);
-            continue;
-        }
-
-        if (last === 0) {
-            if (procedural.randomFloat(0, 1) < 0.05) {
-                pattern.push(0);
-            }
-            pattern.push(1);
-            i += 1;
-            continue;
-        }
-        if (procedural.randomFloat(0, 1) < 0.25) {
-            pattern.push(1);
-        }
-        pattern.push(0);
-        i += 1;
+        pattern.push(last === 0 ? 1 : 0);
     }
 
     if (pattern[pattern.length - 1] === 0) {
         pattern.push(1);
-    }
-
-    if (pattern[pattern.length - 1] === 1 && pattern[pattern.length - 2] === 0) {
-        if (procedural.randomFloat(0, 1) < 0.25) {
-            pattern.push(1);
-        }
     }
 
     return pattern;
@@ -63,19 +45,37 @@ export function generateBaseWord(min = 2, max = 5, seed = 1234) {
         innerConsonants = innerConsonants.filter((consonant) => consonant !== currentConsonant);
     }
 
+    word.replace('пд', 'п');
+    word.replace('дп', 'д');
+    word.replace('пб', 'п');
+    word.replace('бп', 'б');
+
+    word.replace('тд', 'т');
+    word.replace('дт', 'д');
+
+    word.replace('йа', 'я');
+    word.replace('йу', 'ю');
+    word.replace('йе', 'е');
+
+    word.replace(/п$/, procedural.randomFromArray('бвгнрмдкст'.split('')));
+
     return word;
 }
 
 export function generateCityName(seed: number) {
     const endings = ['ар', 'арда', 'айя', 'он', 'ион', 'еон', 'увім', 'инен', 'ос', 'ус', 'ея', 'ия', 'ан','ал','апал', 'ен', 'ир', 'ур', 'ис', 'ас', 'ель', 'ант', 'иф', 'ез', 'ак', 'ул', 'ол', 'ель', 'аль', 'ор', 'ир', 'ум', 'ам', 'ем'];
-    let word = generateBaseWord(2, 5, seed);
+    const endV = ['а','у','и','о'];
+    const endC = ['б','в','д','к','л','м','н','п','р','с','т'];
+    const endE = ['ар','ир','ур','ан','ин','ас','ис','ус','иф','еф','аф','я', 'ия', 'ая', 'оя', 'ея'];
 
-    return word + procedural.randomFromArray(endings);
+    let word = generateBaseWord(1, 3, seed);
+
+    return word + `${procedural.randomFromArray(endV)}${procedural.randomFromArray(endC)}${ procedural.randomInt(0, 10) > 5 ? procedural.randomFromArray(endE) : ''}`;
 }
 
 export function generatePlanetName(seed: number) {
-    const endings = ['ия','ая','оя', 'он','ол','ор','ур', 'ир',  'ин', 'ис', 'ас', 'ус', 'ель', 'ант', 'иф','аф', 'ез', 'ак', 'ул', 'ол', 'ель', 'ум', 'ам', 'ем', 'арис','урис', 'орис', 'арн','орн', 'азор', 'езор', 'изор'];
-    let word = generateBaseWord(2, 4, seed);
+    const endings = ['ия','ая','оя', 'он','ол','ор','ур', 'ир', 'ин', 'ис', 'ас', 'ус', 'ель', 'ант', 'иф','аф', 'ез', 'ак', 'ул', 'ол', 'ель', 'ут', 'ат', 'ет','ухт', 'ахт', 'ехт', 'арис','урис', 'орис', 'арн','орн', 'азор', 'езор', 'изор'];
+    let word = generateBaseWord(1, 4, seed);
 
     return word + procedural.randomFromArray(endings);
 }
@@ -103,12 +103,13 @@ export function generateGroup(seed: number) {
 }
 
 export function generateName(seed: number, isFemale = false) {
-    const maleEndings = ['ев', 'ин', 'ой', 'ер', 'ан', 'ин', 'ир', 'ур', 'ас', 'ус', 'ель', 'ам', 'ом', 'он', 'ил', 'ал', 'ел'];
-    const femaleEndings = ['ева', 'іна', 'ая', 'я', 'ия', 'ра', 'ана', 'ина', 'ира', 'ура', 'аса', 'иса', 'ель', 'ама', 'ома', 'она', 'ила', 'ала', 'ела'];
+    const maleV = ['б','в','д','к','л','н','р','с','т'];
+    const maleC = ['а','о','у','и','е'];
+    const femaleC = ['а','а','а', 'и', 'ая', 'ия', 'ея'];
 
-    let word = generateBaseWord(2, 3, seed);
+    let word = generateBaseWord(1, 2, seed);
 
-    let ending = isFemale ? procedural.randomFromArray(femaleEndings) : procedural.randomFromArray(maleEndings);
+    let ending = `${procedural.randomFromArray(maleC)}${procedural.randomFromArray(maleV)}${isFemale ? procedural.randomFromArray(femaleC) : ''}`
 
     return word + ending;
 }

@@ -18,8 +18,8 @@ export const developmentStages: IDevelopmentStage[] = [
         description: 'Аванпост - это первый этап развития колонии. Он представляет собой небольшую группу зданий. Еда, вода и кислород пополняются из внешних источников',
         transitionForNextStage: {
             goalDescription: 'Для того, чтобы аванпост стал полноценным поселением необходимо наладить добычу базовых ресурсов и обеспечить колонистов пищей и водой.',
-            buildings: ['farm', 'waterExtractor', 'waterPurifier', 'oxyStation'],
-            technologies: ['agriculture']
+            buildings: ['baseWaterExtractor', 'algalOxygenator', 'baseHydroponicFarm', 'simpleMine', 'simpleWorkshop'],
+            technologies: ['baseProduction']
         },
     }
 ];

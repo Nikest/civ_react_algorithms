@@ -109,8 +109,8 @@ export class System {
     }
 }
 
-interface IPlanetCity {
-    citiId: string;
+interface IPlanetColony {
+    colonyId: string;
     planetTileIndex: number;
 }
 export class Planet {
@@ -123,7 +123,7 @@ export class Planet {
     perspectiveRate = 0;
     planetBuilder: PlanetTiles | null = null;
     orbitRadius: number = 0;
-    cities: IPlanetCity[] = [];
+    colonies: IPlanetColony[] = [];
 
     // special
     texture = '';
@@ -172,51 +172,19 @@ export class Planet {
         }
     }
 
-    setCity(cityId: string, districtId: string, planetTileIndex: number) {
-        this.cities.push({
-            citiId: cityId,
+    setCity(colonyId: string, districtId: string, planetTileIndex: number) {
+        this.colonies.push({
+            colonyId: colonyId,
             planetTileIndex: planetTileIndex,
         });
 
         const planetTile = this.planetBuilder?.getPlanetTile(planetTileIndex);
         if (planetTile) {
             planetTile.isColonized = true;
-            planetTile.cityId = cityId;
+            planetTile.colonyId = colonyId;
             planetTile.citiDistrictId = districtId;
 
             window.dispatchEvent(new CustomEvent('ui:planetUpdate'));
         }
-    }
-
-    async getPlanetBuilder() {
-        if (!this.planetBuilder) {
-            let size = 10;
-
-            switch (this.type) {
-                case 'selena':
-                    size = 6;
-                    break;
-                case 'miniterra':
-                    size = 12;
-                    break;
-                case 'terra':
-                    size = 15;
-                    break;
-                case 'superterra':
-                    size = 20;
-                    break;
-                case 'neptun':
-                    size = 35;
-                    break;
-                case 'jovian':
-                    size = 40;
-                    break;
-                default:
-                    size = 10;
-            }
-
-            this.planetBuilder = new PlanetTiles(this.seed, size);
-        }
-        return this.planetBuilder;
     }
 }

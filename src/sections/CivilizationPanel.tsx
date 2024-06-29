@@ -26,15 +26,15 @@ export const CivilizationPanel = () => {
                 <Grid line={6}>
                     <Box>
                         <Title align={'center'} className={'margin-bottom-big'}>Планеты</Title>
-                        <div className={'text-center'}><InfoCircle info={civilization.colonizedPlanetsIds.length} /></div>
+                        <div className={'text-center'}><InfoCircle info={civilization.colonizedPlanetsIds.size} /></div>
                     </Box>
                     <Box>
                         <Title align={'center'} className={'margin-bottom-big'}>Орбитальные станции</Title>
-                        <div className={'text-center'}><InfoCircle info={civilization.orbitalStations.length}/></div>
+                        <div className={'text-center'}><InfoCircle info={civilization.orbitalStations.size}/></div>
                     </Box>
                     <Box>
                         <Title align={'center'} className={'margin-bottom-big'}>Города</Title>
-                        <div className={'text-center'}><InfoCircle info={civilization.cities.length}/></div>
+                        <div className={'text-center'}><InfoCircle info={civilization.colonies.size}/></div>
                     </Box>
                     <Box>
                         <Title align={'center'} className={'margin-bottom-big'}>Население</Title>
@@ -42,11 +42,11 @@ export const CivilizationPanel = () => {
                     </Box>
                     <Box>
                         <Title align={'center'} className={'margin-bottom-big'}>Популяции</Title>
-                        <div className={'text-center'}><InfoCircle info={civilization.populations.length}/></div>
+                        <div className={'text-center'}><InfoCircle info={civilization.populations.size}/></div>
                     </Box>
                     <Box>
                         <Title align={'center'} className={'margin-bottom-big'}>Культуры</Title>
-                        <div className={'text-center'}><InfoCircle info={civilization.cultures.length}/></div>
+                        <div className={'text-center'}><InfoCircle info={civilization.cultures.size}/></div>
                     </Box>
                 </Grid>
             </Box>

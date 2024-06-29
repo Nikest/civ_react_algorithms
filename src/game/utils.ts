@@ -100,3 +100,21 @@ export function calculateInFrequency<T extends string>(frequencies: IFrequency<T
 
     return '' as T;
 }
+
+interface IInfoPopup {
+    title: string;
+    message: string;
+    actions?: Array<{ text: string, function: () => void }>
+}
+
+export const InfoPopupInterface = (detail: IInfoPopup) => {
+    window.dispatchEvent(new CustomEvent('infoPopup', { detail }));
+}
+
+export async function asyncForEach<T>(array: T[], callback: (item: T, index: number, array: unknown[]) => void) {
+    for (let i = 0; i < array.length; i++) {
+        await callback(array[i], i, array);
+    }
+
+    return true;
+}

@@ -152,22 +152,22 @@ export class Fleet {
             window.dispatchEvent(new CustomEvent('ui:fleetUpdate', { detail: { fleetId: this.id } }));
         },
         colonizePlanet: ({planetId}: any) => {
-            const planet = window.game.system.getPlanetById(planetId);
-            if (!planet) {
-                return;
-            }
-
-            this.processDescription = `Колонизационный флот начинает процесс колонизации планеты ${capitalizeFirstLetter(planet.name)}.`;
-
-            window.game.civilization.addEvent({
-                time: Timer.now(),
-                text: this.processDescription,
-            });
-
-            window.game.civilization.colonizePlanet(planetId);
-
-            this.location = `На орбите планеты ${capitalizeFirstLetter(planet.name)}.`;
-            window.dispatchEvent(new CustomEvent('ui:fleetUpdate', { detail: { fleetId: this.id } }));
+            // const planet = window.game.system.getPlanetById(planetId);
+            // if (!planet) {
+            //     return;
+            // }
+            //
+            // this.processDescription = `Колонизационный флот начинает процесс колонизации планеты ${capitalizeFirstLetter(planet.name)}.`;
+            //
+            // window.game.civilization.addEvent({
+            //     time: Timer.now(),
+            //     text: this.processDescription,
+            // });
+            //
+            // window.game.civilization.colonizePlanet(planetId);
+            //
+            // this.location = `На орбите планеты ${capitalizeFirstLetter(planet.name)}.`;
+            // window.dispatchEvent(new CustomEvent('ui:fleetUpdate', { detail: { fleetId: this.id } }));
         }
     }
 }

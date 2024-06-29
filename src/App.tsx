@@ -9,6 +9,10 @@ import {
     TimerPanel,
     EventsPanel,
     Planet3DPanel,
+    PopulationsPanel,
+    ColonyPanel,
+    TechnologyPanel,
+    InfoPopup,
 } from "./sections";
 
 function App() {
@@ -20,8 +24,12 @@ function App() {
         <CivilizationPanel />
         <PersonsPanel />
         <ColonialFleet />
-
+        <PopulationsPanel />
+        <ColonyPanel />
+        <TechnologyPanel />
         <EventsPanel />
+
+        <InfoPopup />
     </div>
   );
 }

@@ -30,7 +30,7 @@ export class Person {
 
         this.isFemale = this.procedural.randomInt(1, 10) < 3;
         this.name = generateName(seed, this.isFemale);
-        this.surname = generateBaseWord(4, 6, seed);
+        this.surname = generateName(seed + 500, false);
         this.age = this.procedural.randomInt(30, 50);
         this.role = role;
         this.location = location;

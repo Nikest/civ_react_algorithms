@@ -19,7 +19,7 @@ export interface IPlanetTile {
     uranium: number;
     isExplored: boolean;
     isColonized: boolean;
-    cityId: string;
+    colonyId: string;
     citiDistrictId: string;
     isPolarCircle: boolean;
     color: string;
@@ -50,6 +50,14 @@ interface ILand {
     type: 'island' | 'continent';
     name: string;
     landGroup: number;
+    size: number;
+    indexes: number[];
+}
+
+interface ILiquidBody {
+    type: 'lake' | 'sea' | 'ocean';
+    name: string;
+    liquidBodyGroup: number;
     size: number;
     indexes: number[];
 }
@@ -108,9 +116,13 @@ function generateRareResourcesNoise(seed: number) {
 
 export class PlanetTiles {
     seed: number;
+
+    public calculated = false;
+
     public hexaSphere: IHexaSphere;
     public procedural: Procedural;
     public lands: ILand[] = [];
+    public liquidBodies: ILiquidBody[] = [];
 
     public isLiquidExists = false;
     public isLandExists = false;
@@ -149,7 +161,7 @@ export class PlanetTiles {
                 color: isPolarCircle ? 'rgb(255,255,255)' : type === 'land' ? 'rgb(182,143,78)' : 'rgb(32,46,72)',
                 isExplored: false,
                 isColonized: false,
-                cityId: '',
+                colonyId: '',
                 citiDistrictId: '',
                 landGroup: 0,
                 isPolarCircle,
@@ -170,10 +182,14 @@ export class PlanetTiles {
             tile.planetTile = planetTile;
         });
 
-        this.calculateLandGroup();
+        this.calculateLandGroup(() => {
+            this.calculateLiquidBodyGroup(() => {
+                this.calculated = true;
+            });
+        });
     }
 
-    calculateLandGroup() {
+    calculateLandGroup(clb: () => void) {
         this.procedural = new Procedural(this.seed + 10);
         this.lands = [];
         let currentLandGroup = 0;
@@ -184,10 +200,10 @@ export class PlanetTiles {
             tile.visited = false;
         });
 
-        this.hexaSphere.tiles.forEach(tile => {
+        utils.asyncForEach<ITile>(this.hexaSphere.tiles, async (tile) => {
             if (tile.planetTile.type === 'land' && !tile.visited) {
                 currentLandGroup++;
-                const landTiles = this.dfs(tile, currentLandGroup);
+                const landTiles = await this.dfsLand(tile, currentLandGroup);
 
                 this.lands.push({
                     type: landTiles.length > 15 ? 'continent' : 'island',
@@ -197,17 +213,60 @@ export class PlanetTiles {
                     indexes: landTiles.map(t => t.planetTile.index)
                 });
             }
-        });
+        }).then(clb);
     }
 
-    dfs(tile: ITile, landGroup: number) {
+    calculateLiquidBodyGroup(clb: () => void) {
+        this.procedural = new Procedural(this.seed + 10);
+        this.liquidBodies = [];
+        let currentLiquidBodyGroup = 0;
+
+        if (!this.isLandExists || !this.isLiquidExists) return;
+
+        this.hexaSphere.tiles.forEach(tile => {
+            tile.visited = false;
+        });
+
+        utils.asyncForEach<ITile>(this.hexaSphere.tiles, async (tile) => {
+            if (tile.planetTile.type === 'liquid' && !tile.visited) {
+                currentLiquidBodyGroup++;
+                const liquidBodyTiles = await this.dfsLiquid(tile, currentLiquidBodyGroup);
+
+                this.liquidBodies.push({
+                    type: liquidBodyTiles.length <= 6 ? 'lake' : liquidBodyTiles.length > 90 ? 'ocean' : 'sea',
+                    name: generatePlanetName(this.procedural.randomInt(0, 100000)),
+                    liquidBodyGroup: currentLiquidBodyGroup,
+                    size: liquidBodyTiles.length,
+                    indexes: liquidBodyTiles.map(t => t.planetTile.index)
+                });
+            }
+        }).then(clb);
+    }
+
+    async dfsLand(tile: ITile, landGroup: number) {
         tile.visited = true;
         tile.planetTile.landGroup = landGroup;
         const landTiles = [tile];
 
-        tile.neighbors.forEach(neighbor => {
+        await utils.asyncForEach<ITile>(tile.neighbors, async (neighbor) => {
             if (neighbor.planetTile.type === 'land' && !neighbor.visited) {
-                landTiles.push(...this.dfs(neighbor, landGroup));
+                const newLandTiles = await this.dfsLand(neighbor, landGroup);
+                landTiles.push(...newLandTiles);
+            }
+        });
+
+        return landTiles;
+    }
+
+    async dfsLiquid(tile: ITile, landGroup: number) {
+        tile.visited = true;
+        tile.planetTile.landGroup = landGroup;
+        const landTiles = [tile];
+
+        await utils.asyncForEach<ITile>(tile.neighbors, async (neighbor) => {
+            if (neighbor.planetTile.type === 'liquid' && !neighbor.visited) {
+                const newLandTiles = await this.dfsLiquid(neighbor, landGroup);
+                landTiles.push(...newLandTiles);
             }
         });
 
@@ -215,7 +274,11 @@ export class PlanetTiles {
     }
 
     getLandGroup(index: number) {
-        return this.lands.find(land => land.indexes.includes(index));
+        return this.lands[index - 1];
+    }
+
+    getLiquidBodyGroup(index: number) {
+        return this.liquidBodies[index - 1];
     }
 
     getHexaSphere() {
@@ -250,9 +313,9 @@ export class PlanetTiles {
         }
     }
 
-    colonizeTile(index: number, cityId: string, districtId: string, color: string) {
+    colonizeTile(index: number, colonyId: string, districtId: string, color: string) {
         this.hexaSphere.tiles[index].planetTile.isColonized = true;
-        this.hexaSphere.tiles[index].planetTile.cityId = cityId;
+        this.hexaSphere.tiles[index].planetTile.colonyId = colonyId;
         this.hexaSphere.tiles[index].planetTile.citiDistrictId = districtId;
         this.hexaSphere.tiles[index].planetTile.color = color;
 

@@ -15,7 +15,7 @@ export const Info = ({ data, children }: InfoProps) => {
             {children}
             <div className={'info-wrap'}>
                 {data.map((info, index) => (
-                    <React.Fragment key={JSON.stringify(info.value)}>
+                    <React.Fragment key={JSON.stringify(info.value) + index}>
                         <span className={'info-key'}>{info.key}</span>
                         {
                             typeof info.value !== 'object' && <span className={'info-value'}>{info.value}</span>

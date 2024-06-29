@@ -1,12 +1,15 @@
 export class Timer {
     interval: any;
     isStopped = true;
-    monthCounter = 0;
+    monthNumber = 0;
 
     timeDate: Date;
     timeDateStart: Date;
     updateEveryMS: number;
     timeIntervalMs: number;
+
+    callbackAfterTime: Map<number, () => void> = new Map(); // number is time in ms
+
     constructor(year: number, month: number, day: number) {
         this.isStopped = true;
         this.timeDate = new Date(year, month, day);
@@ -19,6 +22,22 @@ export class Timer {
         });
         window.addEventListener('timeStop', () => {
             this.stop();
+        });
+    }
+
+    setCallbackAfterTime(time: number, callback: () => void) {
+        this.callbackAfterTime.set(this.timeDate.getTime() + Math.floor(time), callback);
+    }
+
+    checkCallbackAfterTime() {
+        const time = this.timeDate.getTime();
+        this.callbackAfterTime.forEach((callback, key) => {
+            if (time >= key) {
+                callback();
+                this.callbackAfterTime.delete(key);
+            } else {
+                return;
+            }
         });
     }
 
@@ -36,9 +55,20 @@ export class Timer {
         window.dispatchEvent(new CustomEvent('ui:timeSpeedUpdate'));
     }
 
+    newMonth() {
+        window.dispatchEvent(new CustomEvent('timer:UpdateMonth'));
+    }
+
     update() {
-        this.monthCounter++;
+        const currentMonth = this.timeDate.getMonth();
+        if (currentMonth !== this.monthNumber) {
+            this.newMonth();
+            this.monthNumber = currentMonth;
+        }
+
         this.timeDate.setTime(this.timeDate.getTime() + this.timeIntervalMs);
+
+        this.checkCallbackAfterTime();
 
         this.interval = setTimeout(() => {
             this.update();
@@ -53,7 +83,6 @@ export class Timer {
     stop() {
         this.isStopped = true;
         clearInterval(this.interval);
-        window.dispatchEvent(new CustomEvent('timeUpdateMonth'));
     }
 
     formatDuration() {

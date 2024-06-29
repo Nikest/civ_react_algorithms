@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 export const PlanetTileInfo = () => {
-    const [tileData, setTileData] = useState({ tileIndex: 0, planetId: '' });
+    const [tileData, setTileData] = useState({ tileIndex: 0, planetId: '', landGroup: 0 });
 
     useEffect(() => {
         window.addEventListener('ui:planetUpdate:tileHover', ({ detail }: any) => {
@@ -23,37 +23,59 @@ export const PlanetTileInfo = () => {
 
     const isOcean = planetTile.type === 'liquid';
 
-    const landGroup = planet.getTiles().getLandGroup(tileData.tileIndex);
-    const tileType = isOcean ? 'Океан' : landGroup?.type === 'continent' ? 'Континент' : 'Остров';
-    const tileName = isOcean ? '--' : landGroup?.name;
+    const landGroup = planet.getTiles().getLandGroup(tileData.landGroup);
+    const liquidGroup = planet.getTiles().getLiquidBodyGroup(tileData.landGroup);
+
+    const tileName = isOcean ? liquidGroup?.name : landGroup?.name;
 
     let cityName = '';
     let districtType = '';
 
     if (planetTile.isColonized) {
-        const city = window.game.civilization.getCityById(planetTile.cityId);
+        const city = window.game.civilization.getColonyById(planetTile.colonyId);
         cityName = city?.name || '---';
-        districtType = city?.getDistrictById(planetTile.citiDistrictId)?.type || '---';
+        districtType = city?.districts.get(planetTile.index) || '---';
+    }
+
+    const getTileType = (type: string) => {
+        switch (type) {
+            case 'lake':
+                return 'Озеро';
+            case 'sea':
+                return 'Море';
+            case 'ocean':
+                return 'Океан';
+            case 'continent':
+                return 'Континент';
+            case 'island':
+                return 'Остров';
+            default:
+                return '---';
+        }
     }
 
     const getDistrictType = (type: string) => {
         switch (type) {
+            case 'outpost':
+                return 'Аванпост';
             case 'center':
                 return 'Центральный район';
-            case 'mining':
-                return 'Добывающий район';
-            case 'science':
-                return 'Научный район';
-            case 'living':
-                return 'Жилой район';
-            case 'industrial':
-                return 'Промышленный район';
             case 'farming':
                 return 'Фермерский район';
+            case 'mining':
+                return 'Добывающий район';
+            case 'industrial':
+                return 'Промышленный район';
             case 'medical':
                 return 'Медицинский район';
+            case 'science':
+                return 'Научный район';
             case 'religious':
                 return 'храмовый район';
+            case 'living':
+                return 'Жилой район';
+            case 'business':
+                return 'Бизнес район';
             default:
                 return '---';
         }
@@ -61,11 +83,11 @@ export const PlanetTileInfo = () => {
 
     return (
         <div className={'planet-tile-info'}>
-            <p>Тип: {tileType} <b className={'capitalize'}>{tileName}</b></p>
+            <p>Тип: {getTileType(isOcean ? liquidGroup.type : landGroup.type)} <b className={'capitalize'}>{tileName}</b></p>
             {
                 planetTile.isColonized && (
                     <>
-                        <p>Город: <b className={'capitalize'}>{cityName}</b></p>
+                        <p>Колония: <b className={'capitalize'}>{cityName}</b></p>
                         <p>{getDistrictType(districtType)}</p>
                         <br/>
                     </>
@@ -73,7 +95,7 @@ export const PlanetTileInfo = () => {
             }
 
             {
-                !isOcean && (
+                !isOcean ? (
                     <>
                         <p>Ресурсы:</p>
                         <div className={'tile-diagram'}>
@@ -123,6 +145,10 @@ export const PlanetTileInfo = () => {
                                 }}/>
                             </p>
                         </div>
+                    </>
+                ) : (
+                    <>
+                    <p>Размер: {liquidGroup.size}</p>
                     </>
                 )
             }
