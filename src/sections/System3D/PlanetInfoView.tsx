@@ -89,8 +89,8 @@ export const PlanetInfoView = ({ id }: { id: string }) => {
                 </div>
             </div>
             {(isColonizable && !planetInfo.waitingForColonization) ?
-                <button onClick={onPlanetColonize}>Колонизировать</button> :
-                <button disabled={true}>Нельзя колонизировать</button>}
+                <button onClick={onPlanetColonize}>Выйти на орбиту</button> :
+                <button disabled={true}>Недоступно</button>}
             {planetInfo.waitingForColonization && <button onClick={onShowPlanet}>Показать</button>}
             <button onClick={hidePlanet}>Скрыть</button>
             <Info data={planetViewData}/>

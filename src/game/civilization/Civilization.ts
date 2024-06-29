@@ -7,6 +7,7 @@ import { Fleet } from './Fleet';
 import { Colony } from './colony/Colony';
 import { Population, SubPopulation } from './population';
 import { backgroundVariants, IBackground } from './Background';
+import * as StoryTeller from '../story';
 
 import { InfoPopupInterface, capitalizeFirstLetter } from '../utils';
 
@@ -48,9 +49,13 @@ export class Civilization {
 
     colonizedPlanetsIds: Set<string> = new Set();
 
-    persons: Person[] = [];
+    personsById: Map<string, Person> = new Map();
+    personsByRole: Map<string, Person> = new Map();
     getPersonById(id: string) {
-        return this.persons.find((person) => person.id === id);
+        return this.personsById.get(id) as unknown as Person;
+    }
+    getPersonByRole(role: string) {
+        return this.personsByRole.get(role) as unknown as Person;
     }
 
     fleets: Fleet[] = [];
@@ -71,7 +76,8 @@ export class Civilization {
         this.colonies = new Map();
         this.cultures = new Map();
         this.orbitalStations = new Map();
-        this.persons = [];
+        this.personsById = new Map();
+        this.personsByRole = new Map();
     }
 
     start() {
@@ -87,9 +93,13 @@ export class Civilization {
         fleet.headOfColonizationId = headOfColonization.id;
         fleet.mainScientistId = mainScientist.id;
 
-        this.persons.push(captain);
-        this.persons.push(headOfColonization);
-        this.persons.push(mainScientist);
+        this.personsById.set(captain.id, captain);
+        this.personsById.set(headOfColonization.id, headOfColonization);
+        this.personsById.set(mainScientist.id, mainScientist);
+
+        this.personsByRole.set('captain', captain);
+        this.personsByRole.set('headOfColonization', headOfColonization);
+        this.personsByRole.set('scientist', mainScientist);
 
         setTimeout(() => {
             fleet.actions.enterToSystem();
@@ -134,9 +144,17 @@ export class Civilization {
                             colony.init();
                             const landGroup = planet.planetTiles?.getLandGroup(tile.landGroup);
 
+                            const capitan = this.getPersonByRole('captain');
                             InfoPopupInterface({
                                 title: `Основана колония ${capitalizeFirstLetter(colony.name)} на планете ${capitalizeFirstLetter(planet.name)}`,
-                                message: `Из орбитальной станции на орбите планеты ${capitalizeFirstLetter(planet.name)} были спущены первые модули для постройки аванпоста колонии на континенте ${capitalizeFirstLetter(landGroup?.name || '')}`,
+                                message: StoryTeller.firstColonyEstablish({
+                                    starName: window.game.system.star.name,
+                                    planetName: planet.name,
+                                    colonyName: colony.name,
+                                    captainName: capitan.name,
+                                    captainSurname: capitan.surname,
+                                    captainIsFemale: capitan.isFemale
+                                }),
                             });
                         }
                     },

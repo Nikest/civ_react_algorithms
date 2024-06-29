@@ -6,37 +6,36 @@ interface IInfoPopup {
     actions?: Array<{ text: string, function: () => void }>
 }
 
-
 export const InfoPopupInterface = (detail: IInfoPopup) => {
     window.dispatchEvent(new CustomEvent('infoPopup', { detail }));
 }
 
 export const InfoPopup = () => {
-    const [data, setData] = useState<IInfoPopup>({
-        title: 'Test',
-        message: 'Test message'
-    });
+    const [data, setData] = useState<IInfoPopup[]>([]);
 
     useEffect(() => {
         // @ts-ignore
         window.addEventListener('infoPopup', ({ detail }: CustomEvent<IInfoPopup>) => {
-            setData(detail);
+            const newDataArr = [...data];
+            newDataArr.push(detail);
+            setData(newDataArr);
         });
     }, []);
 
     const onClose = () => {
-        setData(null as unknown as IInfoPopup);
+        const newDataArr = [...data];
+        newDataArr.shift();
+        setData(newDataArr);
     }
 
-
-    return data ? (
+    return data.length > 0 ? (
         <aside className={'info-popup'}>
-            <h3 className={'title'}>{data.title}</h3>
-            <p>{data.message}</p>
+            <h3 className={'title'}>{data[0].title}</h3>
+            <p>{data[0].message}</p>
 
             <div>
                 {
-                    data.actions?.map((action) => (
+                    data[0].actions?.map((action) => (
                         <button onClick={() => {
                             action.function();
                             onClose();

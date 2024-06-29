@@ -12,7 +12,7 @@ export const PersonsPanel = () => {
         });
     }, []);
 
-    const persons = window.game.civilization.persons;
+    const persons = Array.from(window.game.civilization.personsById.values());
 
     return (
         <div className="percons-panel" data-render-id={renderId}>

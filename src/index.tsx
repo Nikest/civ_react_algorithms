@@ -26,7 +26,7 @@ const civSeed = Math.floor(Math.random() * 100000);
 // 43144
 // 4004
 
-const game = new Game(systemSeed, civSeed);
+const game = new Game(17588, 48742);
 window.game = game;
 
 const root = ReactDOM.createRoot(

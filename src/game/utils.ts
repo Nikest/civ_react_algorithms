@@ -108,7 +108,9 @@ interface IInfoPopup {
 }
 
 export const InfoPopupInterface = (detail: IInfoPopup) => {
-    window.dispatchEvent(new CustomEvent('infoPopup', { detail }));
+    setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('infoPopup', { detail }));
+    }, 250);
 }
 
 export async function asyncForEach<T>(array: T[], callback: (item: T, index: number, array: unknown[]) => void) {

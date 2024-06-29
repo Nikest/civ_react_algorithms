@@ -2,7 +2,7 @@ import { generateId } from '../../utils';
 import { buildings, Building } from './Buildings';
 import { colonyFeatures, ColonyFeature } from './ColonyFeatures';
 import { Timer } from '../../Timer';
-import { Outpost } from '../colony/District';
+import { District } from '../colony/District';
 
 const arrayTechLevel0: Map<string, Technology> = new Map();
 const arrayTechLevel1: Map<string, Technology> = new Map();
@@ -17,7 +17,7 @@ interface ITechnology {
     cost: number;
     key: string;
     buildings: string[];
-    colony: string[];
+    feature: string[];
     onResearchEnd: () => void;
     isKeyTechnology?: boolean;
 }
@@ -30,7 +30,7 @@ class Technology implements ITechnology {
     cost: number;
     key: string;
     buildings: string[];
-    colony: string[];
+    feature: string[];
     isKeyTechnology: boolean = false;
 
     onResearchEnd: () => void;
@@ -43,7 +43,7 @@ class Technology implements ITechnology {
         this.cost = props.cost;
         this.key = props.key;
         this.buildings = props.buildings;
-        this.colony = props.colony;
+        this.feature = props.feature;
         this.isKeyTechnology = props.isKeyTechnology || false;
 
         this.onResearchEnd = props.onResearchEnd;
@@ -117,7 +117,7 @@ export class TechTree {
 
         const tech = this.getTechnologyById(techId) as unknown as Technology;
         tech.buildings.forEach(b => this.allowedBuildings.add(b));
-        tech.colony.forEach(c => this.allowedColonyFeatures.add(c));
+        tech.feature.forEach(c => this.allowedColonyFeatures.add(c));
         tech.onResearchEnd();
         this.changeHash = generateId();
 
@@ -151,13 +151,13 @@ export class TechTree {
 const adaptation = new Technology({
     name: 'Адаптация',
     description: 'Изучение окружающей среды. Открывает строительство базового космопорта для создания первого поселения',
-    cost: 10,
+    cost: 2,
     key: 'adaptation',
     buildings: [],
-    colony: ['outpostLiving'],
+    feature: ['outpostLiving'],
     isKeyTechnology: true,
     onResearchEnd: () => {
-        Outpost.addFeature('outpostLiving');
+       District.addFeature('outpost', 'outpostLiving');
     }
 });
 arrayTechLevel0.set(adaptation.id, adaptation);
@@ -166,12 +166,13 @@ arrayTechLevel0.set(adaptation.id, adaptation);
 const lifeSupport = new Technology({
     name: 'Базовое жизнеобеспечение',
     description: 'Прострая фильтрация воды и воздуха в жилищах колонистов',
-    cost: 10,
+    cost: 4,
     key: 'lifeSupport',
     buildings: ['algalOxygenator', 'baseHydroponicFarm'],
-    colony: [],
+    feature: [],
     onResearchEnd: () => {
-        console.log('lifeSupport');
+        District.addBuilding('outpost', 'algalOxygenator');
+        District.addBuilding('outpost', 'baseHydroponicFarm');
     }
 });
 arrayTechLevel1.set(lifeSupport.id, lifeSupport);
@@ -179,12 +180,12 @@ arrayTechLevel1.set(lifeSupport.id, lifeSupport);
 const baseBuild = new Technology({
     name: 'Базовое строительство',
     description: 'Колонисты начинают производить строительные блоки и цементирующие материалы из местных ресурсов',
-    cost: 10,
+    cost: 6,
     key: 'baseBuild',
     buildings: [],
-    colony: ['districtAllowed'],
+    feature: ['districtAllowed'],
     onResearchEnd: () => {
-        console.log('baseBuild');
+        District.addFeature('outpost', 'districtAllowed');
     }
 });
 arrayTechLevel1.set(baseBuild.id, baseBuild);
@@ -192,12 +193,13 @@ arrayTechLevel1.set(baseBuild.id, baseBuild);
 const baseMining = new Technology({
     name: 'Базовая добыча',
     description: 'Исследование возможностей добычи полезных ископаемых из неглубоких залежей',
-    cost: 10,
+    cost: 7,
     key: 'baseMining',
     buildings: ['baseWaterExtractor', 'simpleMine'],
-    colony: [],
+    feature: [],
     onResearchEnd: () => {
-        console.log('baseMining');
+        District.addBuilding('outpost', 'baseWaterExtractor');
+        District.addBuilding('outpost', 'simpleMine');
     }
 });
 arrayTechLevel1.set(baseMining.id, baseMining);
@@ -205,12 +207,12 @@ arrayTechLevel1.set(baseMining.id, baseMining);
 const baseProduction = new Technology({
     name: 'Базовое производство',
     description: 'Простое производство необходимых материалов',
-    cost: 10,
+    cost: 3,
     key: 'baseProduction',
     buildings: ['simpleWorkshop'],
-    colony: [],
+    feature: [],
     onResearchEnd: () => {
-        console.log('baseProduction');
+        District.addBuilding('outpost', 'simpleWorkshop');
     }
 });
 arrayTechLevel1.set(baseProduction.id, baseProduction);

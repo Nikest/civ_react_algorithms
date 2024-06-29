@@ -25,7 +25,7 @@ export const TechnologyCell: React.FC<ITechnology> = ({id, name, level, descript
         return window.game.civilization.technologies.allBuildings.get(building);
     }).filter((b) => b !== undefined);
 
-    const colonyFeatures = Array.from(technology?.colony || []).map((colonyFeatures) => {
+    const colonyFeatures = Array.from(technology?.feature || []).map((colonyFeatures) => {
         return window.game.civilization.technologies.allColonyFeatures.get(colonyFeatures);
     }).filter((b) => b !== undefined);
 
@@ -39,7 +39,7 @@ export const TechnologyCell: React.FC<ITechnology> = ({id, name, level, descript
                 <p className={`text-center title ${additionalClassName} ${(level || 0) <= allowedLevel ? 'allowed' : ''}`}>
                     {name}
                     {
-                        isActive ? <span>{((techCost - progress) / techCost) * 100}%</span> : null
+                        isActive ? <span>{Math.floor(((techCost - progress) / techCost) * 100)}%</span> : null
                     }
                 </p>
                 <p className={'text-center descr'}>{description}</p>

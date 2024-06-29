@@ -1,4 +1,5 @@
 import { Colony } from './Colony';
+import * as utils from '../../utils';
 
 export type DistrictType =
     'outpost' |
@@ -34,11 +35,92 @@ export abstract class District {
 
     maxPopulation = 0;
 
+    static featuresByDistrictType: Map<DistrictType, Set<string>> = new Map([
+        ['outpost', new Set<string>()],
+        ['center', new Set<string>()],
+        ['farming', new Set<string>()],
+        ['mining', new Set<string>()],
+        ['industrial', new Set<string>()],
+        ['medical', new Set<string>()],
+        ['science', new Set<string>()],
+        ['religious', new Set<string>()],
+        ['living', new Set<string>()],
+        ['business', new Set<string>()],
+    ]);
+    static getFeatures(districtType: DistrictType) {
+        return District.featuresByDistrictType.get(districtType) as unknown as Set<string>;
+    }
+    static addFeature(districtType: DistrictType, feature: string) {
+        District.getFeatures(districtType).add(feature);
+        console.log('addFeature', districtType, feature, District.getFeatures(districtType));
+        window.dispatchEvent(new CustomEvent(`district:${districtType}:update`));
+    }
     realizedFeatures: Set<string> = new Set();
+
+    static buildingsByDistrictType: Map<DistrictType, Set<string>> = new Map([
+        ['outpost', new Set<string>()],
+        ['center', new Set<string>()],
+        ['farming', new Set<string>()],
+        ['mining', new Set<string>()],
+        ['industrial', new Set<string>()],
+        ['medical', new Set<string>()],
+        ['science', new Set<string>()],
+        ['religious', new Set<string>()],
+        ['living', new Set<string>()],
+        ['business', new Set<string>()],
+    ]);
+    static getBuildings(districtType: DistrictType) {
+        return District.buildingsByDistrictType.get(districtType) as unknown as Set<string>;
+    }
+    static addBuilding(districtType: DistrictType, building: string) {
+        District.getBuildings(districtType).add(building);
+        window.dispatchEvent(new CustomEvent(`district:${districtType}:update`));
+    }
     realizedBuildings: Set<string> = new Set();
 
-    constructor(colony: Colony) {
+    constructor(colony: Colony, type: DistrictType) {
         this.colony = colony;
+        this.type = type;
+
+        this.realizedFeatures = new Set();
+        this.realizedBuildings = new Set();
+
+        window.addEventListener(`district:${type}:update`, () => {
+            this.featureChecking();
+        });
+    }
+
+    featureChecking() {
+        if (this.realizedFeatures.size !== District.getFeatures(this.type).size) {
+            utils.asyncForEach<string>(Array.from(District.getFeatures(this.type)), async (feature: string) => {
+                if (this.realizedFeatures.has(feature)) return;
+                window.game.civilization.technologies.allColonyFeatures.get(feature)?.effects.forEach(this.setEffect.bind(this));
+
+                this.realizedFeatures.add(feature);
+            });
+        }
+    }
+
+    setEffect(effect: any) {
+        const key = Object.keys(effect)[0];
+        const value = Object.values(effect)[0] as any;
+
+        if (value.multiple) {
+            // @ts-ignore
+            this[key] *= value.multiple;
+        }
+        if (value.add) {
+            // @ts-ignore
+            this[key] += value.add;
+        }
+        if (value.divide) {
+            // @ts-ignore
+            this[key] /= value.divide;
+        }
+        if (value.minus) {
+            // @ts-ignore
+            this[key] -= value.minus;
+        }
     }
 
     createNewDistrict(tileNumber: number) {
@@ -54,142 +136,73 @@ export abstract class District {
 }
 
 export class Outpost extends District {
-    static features: Set<string> = new Set();
-    static addFeature(feature: string) {
-        Outpost.features.add(feature);
-        window.dispatchEvent(new CustomEvent('district:Outpost:update'));
-    }
-
-    static buildings: Set<string> = new Set();
-    static addBuilding(building: string) {
-        Outpost.buildings.add(building);
-        window.dispatchEvent(new CustomEvent('district:Outpost:update'));
-    }
-
     constructor(colony: Colony) {
-        super(colony);
-
-        this.type = 'outpost';
+        super(colony, 'outpost');
         this.maxPopulation = 10;
 
         this.featureChecking();
-
-        window.addEventListener('district:Outpost:update', () => {
-            this.featureChecking();
-        });
-    }
-
-    featureChecking() {
-        if (this.realizedFeatures.size !== Outpost.features.size) {
-            Outpost.features.forEach(feature => {
-                !this.realizedFeatures.has(feature) && window.game.civilization.technologies.allColonyFeatures.get(feature)?.effects.forEach((effect: any) => {
-                    const key = Object.keys(effect)[0];
-                    const value = Object.values(effect)[0] as any;
-
-                    if (key === 'maxPopulation') {
-                        this.maxPopulation *= value.multiple;
-                    }
-                });
-            });
-        }
     }
 }
 
 export class Center extends District {
-    static features: Set<string> = new Set();
-    static buildings: Set<string> = new Set();
-
     constructor(colony: Colony) {
-        super(colony);
-
-        this.type = 'center';
+        super(colony, 'center');
+        this.featureChecking();
     }
 }
 
 export class Farming extends District {
-    static features: Set<string> = new Set();
-    static buildings: Set<string> = new Set();
-
     constructor(colony: Colony) {
-        super(colony);
-
-        this.type = 'farming';
+        super(colony, 'farming');
+        this.featureChecking();
     }
 }
 
 export class Mining extends District {
-    static features: Set<string> = new Set();
-    static buildings: Set<string> = new Set();
-
     constructor(colony: Colony) {
-        super(colony);
-
-        this.type = 'mining';
+        super(colony, 'mining');
+        this.featureChecking();
     }
 }
 
 export class Industrial extends District {
-    static features: Set<string> = new Set();
-    static buildings: Set<string> = new Set();
-
     constructor(colony: Colony) {
-        super(colony);
-
-        this.type = 'industrial';
+        super(colony, 'industrial');
+        this.featureChecking();
     }
 }
 
 export class Medical extends District {
-    static features: Set<string> = new Set();
-    static buildings: Set<string> = new Set();
-
     constructor(colony: Colony) {
-        super(colony);
-
-        this.type = 'medical';
+        super(colony, 'medical');
+        this.featureChecking();
     }
 }
 
 export class Science extends District {
-    static features: Set<string> = new Set();
-    static buildings: Set<string> = new Set();
-
     constructor(colony: Colony) {
-        super(colony);
-
-        this.type = 'science';
+        super(colony, 'science');
+        this.featureChecking();
     }
 }
 
 export class Religious extends District {
-    static features: Set<string> = new Set();
-    static buildings: Set<string> = new Set();
-
     constructor(colony: Colony) {
-        super(colony);
-
-        this.type = 'religious';
+        super(colony, 'religious');
+        this.featureChecking();
     }
 }
 
 export class Living extends District {
-    static features: Set<string> = new Set();
-    static buildings: Set<string> = new Set();
-
     constructor(colony: Colony) {
-        super(colony);
-
-        this.type = 'living';
+        super(colony, 'living');
+        this.featureChecking();
     }
 }
 
 export class Business extends District {
-    static features: Set<string> = new Set();
-    static buildings: Set<string> = new Set();
-
     constructor(colony: Colony) {
-        super(colony);
-
-        this.type = 'business';
+        super(colony, 'business');
+        this.featureChecking();
     }
 }
